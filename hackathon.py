@@ -18,6 +18,7 @@ try:
               """)
 except:
     print()
+
 def query():
     """ Print out the amount BTC bought """
     # open database and set cursor
