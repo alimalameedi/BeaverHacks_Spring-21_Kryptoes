@@ -10,8 +10,15 @@ class CryptoManager():
 	def __init__(self):
 		"""Instantiate the manager object. Connect to the server and SQL database."""
 
+		# Create and initialize data members to connect to server
+		self._api_key = None
+		self._url = None
+		self._header = None
+		self._session = None
 		self.connect_server()
-		self.connect_database()
+
+		# Data member for database connection
+		self._database_connection = self.connect_database()
 
 	def connect_server(self):
 		"""Connect to the server for the most up-to-date information."""
@@ -31,15 +38,50 @@ class CryptoManager():
 		self._session.headers.update(self._header)
 
 	def connect_database(self):
-		"""Connect to a SQL database"""
+		"""
+		Connect to database
+
+		:return: a tuple containing the connection
+		"""
 		# TO DO
 
 		# If database does not already exists, create one.
 		# table for user data: user_id, username (string), hashed_password (string), cash_amount (float)
-		# table for porfolio: user_id, cryptocurrency_id (integer), holding (float)
+
 
 		# Connect to the database
-		pass
+		connection = sqlite3.connect("KrypToes.db")
+		cursor = connection.cursor()
+
+		# left out username and userid for now
+		# table for porfolio: user_id, cryptocurrency_id (integer), holding (float)
+		cursor.execute("""CREATE TABLE portfoliio (
+		              crypto_name text,
+		              crypto_id int,
+		              holding float
+		              )""")
+
+		connection.commit()
+
+		return connection
+
+	def get_data(self, crypto_name):
+		"""
+		Takes the name of the cryptocurrency as a parameter and returns the user's data of
+		that particular crypto holding
+
+		:param crypto_name: the name of the cryptocurrency
+		:return: data of user's cryptocurrency
+		"""
+
+		# create cursor
+		cursor = self._database_connection.cursor()
+
+		# obtain and return data
+		cursor.execute("SELECT * FROM wallet WHERE cryptocurrency='%s'" % crypto_name)
+		data = cursor.fetchall()
+		return data
+
 
 	def create_account(self, username, password, cash_amount):
 		"""Create an user account."""
