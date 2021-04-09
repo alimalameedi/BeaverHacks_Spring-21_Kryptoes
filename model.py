@@ -24,18 +24,18 @@ class CryptoManager():
 		#BONUS
 		pass
 
-	def loopUpCryptoID(self, cryto_name):
+	def lookup_id(self, cryto_name):
 		#BONUS
 		pass
 
-	def getCurrentPrice(self, user_id):
+	def get_current_price(self, user_id):
 		#TODO
 		pass
 
-	def buyCrypto(self, user_id, cryto_id, units):
+	def buy_crypto(self, user_id, cryto_id, units):
 		#TODO
 		pass
 
-	def sellCrypto(self, user_id, cryto_id, units):
+	def sell_crypto(self, user_id, cryto_id, units):
 		#TODO
 		pass
