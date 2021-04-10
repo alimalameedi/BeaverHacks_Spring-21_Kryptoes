@@ -63,12 +63,21 @@ class CryptoManager():
 						)""")
 
 		# Create table that keeps track of the cash amount the user has on hand
-		#   Initiate amount is default to $10,000.00
 		cursor.execute("""CREATE TABLE IF NOT EXISTS account (
 							user_id int,
 							user_name text,
-							cash_amount float,
+							cash_amount float
 						)""")
+
+		# May remove later if account login functionality is implemented
+		# Create a temporary user with initiate cash amount of $10,000.00
+		cursor.execute("INSERT INTO account "
+		               "VALUES (:user_id, :user_name, :cash_amount)",
+		               {
+			               "user_id": 1,
+			               "user_name": "Elon",
+			               "cash_amount": 10000.00
+		               })
 
 		self._database_connection.commit()
 
