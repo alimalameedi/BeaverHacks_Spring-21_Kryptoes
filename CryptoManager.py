@@ -55,7 +55,6 @@ class CryptoManager():
 		cursor.execute("""CREATE TABLE IF NOT EXISTS portfolio (
 							user_id int NOT NULL,
 							crypto_id int NOT NULL,
-							crypto_name text,
 							quantity float NOT NULL,
 							price float NOT NULL
 						)""")
@@ -69,27 +68,24 @@ class CryptoManager():
 
 		self._database_connection.commit()
 
-	def add_to_portfolio(self, user_id, crypto_id, crypto_name, quantity, price):
+	def add_to_portfolio(self, user_id, crypto_id, quantity, price):
 		"""
 		Adds a cryptocurrency to user's portfolio
 		"""
 
 		# Connect to database
-		connection = self._database_connection
-		cursor = connection.cursor()
+		with self._database_connection as connection:
 
-		# append purchase to portfolio
-		cursor.execute("INSERT INTO portfolio "
-		               "VALUES (:user_id, :crypto_id, :crypto_name, :quantity, :price)",
-					{
-						"user_id": user_id,
-						"crypto_id": crypto_id,
-						"crypto_name": crypto_name,
-						"quantity": quantity,
-						"price": price
-					})
+			# append purchase to portfolio
+			connection.execute("INSERT INTO portfolio "
+			               "VALUES (:user_id, :crypto_id, :quantity, :price)",
+						{
+							"user_id": user_id,
+							"crypto_id": crypto_id,
+							"quantity": quantity,
+							"price": price
+						})
 
-		connection.commit()
 
 	def get_quantity(self, user_id, crypto_id):
 		"""Take the user id, id of the cryptocurrency as parameter and
@@ -178,37 +174,67 @@ class CryptoManager():
 
 		return cursor.fetchone()[0]
 
-	def buy_crypto(self, user_id, cryto_id, units):
+	def update_cash_amount(self, user_id, change_amount):
+		"""Take the user id as a parameter and update the cash ammount currently in the account."""
+
+		cash_before_change = self.get_cash_amount(user_id)
+		cash_after_change = cash_before_change + change_amount
+
+		with self._database_connection as connection:
+			cursor = connection.execute("UPDATE account "
+			                            "SET cash_amount=? "
+		                                "WHERE id=?",
+			                            (cash_after_change, user_id))
+
+	def buy_crypto(self, user_id, crypto_id, units):
 		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase."""
 
 		# Ensure the user has enough cash on hand
+		cash = self.get_cash_amount(user_id)
+		price = self.get_current_price(crypto_id)
+		if cash < price * units:
+			raise InsufficientFundError
 
 		# Make the purchase
 		#   decrease the cash_amount
-		#   query the current price of the cryptocurrency
+		self.update_cash_amount(user_id, -(price * units))
+
 		#   update the holding for the cryptocurrency
-		#       make a new entry for every purchase? (to keep track of net gain/loss)
-		pass
+		self.add_to_portfolio(user_id, crypto_id, units, price)
 
-	def sell_crypto(self, user_id, cryto_id, units):
+
+	def sell_crypto(self, user_id, crypto_id, units):
 		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell."""
-		# TO DO
 
-		# Ensure the user has this cryptocurrency in porfolio
-		# Ensure the user has enough units on hand to be sold
+		# Ensure the user has enough cryptocurrency to be sold
+		holding = self.get_quantity(user_id, crypto_id)
+
+		if holding < units:
+			raise InsufficientQuantityError
+
+		price = self.get_current_price(crypto_id)
 
 		# Make the sell
-		#   decrease or delete the holding
-		#   query the current price of the cryptocurrency
-		#   increase the cash amount
-		pass
+		#   increase the cash_amount
+		self.update_cash_amount(user_id, price * units)
+
+		#   update the holding for the cryptocurrency
+		self.add_to_portfolio(user_id, crypto_id, -units, price)
+
+class InsufficientFundError(Exception):
+	"""Raise when the user does not have enough fund to buy any cryptocurrency."""
+	pass
+
+class InsufficientQuantityError(Exception):
+	"""Raise when the user does not have enough quantity of the cryptocurrency being sold."""
+	pass
 
 if __name__ == "__main__":
 
 	# Test code
 	app = CryptoManager()
 
-	# # Create a temporary user with initiate cash amount of $10,000.00
+	# Create a temporary user with initiate cash amount of $10,000.00
 	# app.create_account("Elon", 10000.00)
 	# app.create_account("Bezos", 20000.00)
 	#
@@ -223,6 +249,34 @@ if __name__ == "__main__":
 	# app.add_to_portfolio(2, 1, "Bitcoin", -1.5, 59448.32)
 	# print(app.get_quantity(2, 1))
 	# print(app.get_prices(2, 1))
+	#
+	# print(app.get_cash_amount(1))
+	# print(app.get_cash_amount(2))
 
-	print(app.get_cash_amount(1))
-	print(app.get_cash_amount(2))
+	# raise InsufficientFundError
+	# raise InsufficientQuantityError
+
+	# app.buy_crypto(1, 1, 0.001)
+	# app.update_cash_amount(1, 1000.00)
+	# app.update_cash_amount(2, -1000.00)
+
+	# app.buy_crypto(1, 1, 0.01)
+	# app.buy_crypto(2, 1, 0.01)
+
+	# try:
+	# 	app.buy_crypto(1, 1, 1)
+	# 	app.buy_crypto(2, 1, 1)
+	# except InsufficientFundError:
+	# 	print("You are too poor to invest!")
+
+	# try:
+	# 	app.sell_crypto(1, 1, 1)
+	# 	app.sell_crypto(2, 1, 1)
+	# except InsufficientQuantityError:
+	# 	print("You are don't even have enough to sell!")
+
+	# app.sell_crypto(1, 1, 0.02)
+	# app.sell_crypto(2, 1, 0.01)
+
+	# print(app.get_quantity(1, 1))
+	# print(app.get_quantity(2, 1))
