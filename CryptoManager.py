@@ -44,34 +44,35 @@ class CryptoManager():
 
 		:return: a tuple containing the connection
 		"""
-		# TO DO
 
 		# If database does not already exists, create one.
 		# table for user data: user_id, username (string), hashed_password (string), cash_amount (float)
+			# BONUS
 
 
 		# Connect to the database
 		self._database_connection = sqlite3.connect("Kryptoes.db")
 		cursor = self._database_connection.cursor()
 
-		# create table for portfolio if it does not already exist
+		# Create table for portfolio if it does not already exist
 		cursor.execute("""CREATE TABLE IF NOT EXISTS portfolio (
-						crypto_name text,
-						crypto_id int,
-						quantity float,
-						price float
+							crypto_id int,
+							crypto_name text,
+							quantity float,
+							price float
 						)""")
 
-		"""
-		# create table that keeps track of the cryptocurrencies user has
-		cursor.execute(CREATE TABLE IF NOT EXISTS cryptocurrencies (
-				        crypto_name text
-				        ))
-		"""
+		# Create table that keeps track of the cash amount the user has on hand
+		#   Initiate amount is default to $10,000.00
+		cursor.execute("""CREATE TABLE IF NOT EXISTS account (
+							user_id int,
+							user_name text,
+							cash_amount float,
+						)""")
 
 		self._database_connection.commit()
 
-	def add_to_portfolio(self, crypto_name, crypto_id, quantity, price):
+	def add_to_portfolio(self, crypto_id, crypto_name, quantity, price):
 		"""
 		Adds a cryptocurrency to user's portfolio
 		"""
@@ -81,32 +82,17 @@ class CryptoManager():
 		cursor = connection.cursor()
 
 		# append purchase to portfolio
-		cursor.execute("INSERT INTO portfolio VALUES (:crypto_name, :crypto_id, :quantity, :price)",
+		cursor.execute("INSERT INTO portfolio "
+		               "VALUES (:crypto_id, :crypto_name, :quantity, :price)",
 					{
-						"crypto_name": crypto_name,
 						"crypto_id": crypto_id,
+						"crypto_name": crypto_name,
 						"quantity": quantity,
 						"price": price
 					})
 
-		"""
-		# retrieve all cryptocurrencies user holds
-		cursor.execute("SELECT crypto_name FROM cryptocurrencies")
-
-		# list of all cryptocurrencies
-		crypto_list = [name[0] for name in cursor.fetchall()]
-
-		# if new crypto, add to user's list of cryptocurrencies
-		if crypto_name not in crypto_list:
-			cursor.execute("INSERT INTO cryptocurrencies VALUES (:crypto_name)",
-							{
-								"crypto_name": crypto_name
-							})
-		"""
-
 		connection.commit()
 
-		# connection.close()
 
 	"""
 	def get_total_cryptocurrencies(self):
@@ -126,11 +112,31 @@ class CryptoManager():
 		return total_crypto[0]
 	"""
 
-	def get_quantity(self, crypto_name):
-		pass
+	def get_quantity(self, crypto_id):
+		"""Take the id of the cryptocurrency as parameter and
+		return the quantity of that cryptocurrency that the user holds.
+		Quantity of any cryptocurrency should never be less than zero."""
 
-	def get_price(self):
-		pass
+		with self._database_connection as connection:
+			cursor = connection.execute("SELECT sum(quantity) from portfolio "
+		                                "WHERE crypto_id=?", (crypto_id,))
+
+		return cursor.fetchone()[0]
+
+
+	def get_prices(self, crypto_id):
+		"""Take the id of the cryptocurrency as parameter and
+		return a list of all transaction of that cryptocurrency that the user made.
+		Each transaction is represented as a 2-tuple:
+			(quantity, price at the time of transaction)
+			A positive quantity represents a purchase, whereas
+			A negative quantity represents a sell."""
+
+		with self._database_connection as connection:
+			cursor = connection.execute("SELECT quantity, price from portfolio "
+			                            "WHERE crypto_id=?", (crypto_id,))
+
+		return cursor.fetchall()
 
 
 	def create_account(self, username, password, cash_amount):
@@ -180,7 +186,6 @@ class CryptoManager():
 
 	def buy_crypto(self, user_id, cryto_id, units):
 		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase."""
-		# TO DO
 
 		# Ensure the user has enough cash on hand
 
@@ -203,3 +208,7 @@ class CryptoManager():
 		#   query the current price of the cryptocurrency
 		#   increase the cash amount
 		pass
+
+if __name__ == "__main__":
+	app = CryptoManager()
+	print(app.get_prices(1))
