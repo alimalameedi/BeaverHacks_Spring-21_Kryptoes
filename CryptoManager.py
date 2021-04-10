@@ -140,7 +140,8 @@ class CryptoManager():
 
 
 	def create_account(self, username, cash_amount):
-		"""Create an user account."""
+		"""Take username and cash amount as parameter and
+		create an user account in the database."""
 
 		with self._database_connection as connection:
 			cursor = connection.execute("INSERT INTO account(user_name, cash_amount) "
