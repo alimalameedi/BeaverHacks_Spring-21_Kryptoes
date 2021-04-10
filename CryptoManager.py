@@ -142,13 +142,13 @@ class CryptoManager():
 		# TO DO
 		pass
 
-	def get_current_price(self, cryto_id):
+	def get_current_price(self, crypto_id, get_percent_change=False):
 		"""Take the id of the cryptocurrency as parameter.
 		Query and return the most up-to-date price of that cryptocurrency."""
 
 		# Parameters for Query
 		parameters = {
-			"start": cryto_id,
+			"start": crypto_id,
 			"limit": "1",
 			"convert": "USD"
 		}
@@ -157,7 +157,14 @@ class CryptoManager():
 		try:
 			response = self._session.get(self._url, params=parameters)
 			data = json.loads(response.text)
-			return data["data"][0]["quote"]["USD"]["price"]
+
+			# If the no need for getting the percent change, then just return the current price
+			if not get_percent_change:
+				return data["data"][0]["quote"]["USD"]["price"]
+
+			# If the percent change is needed, then return (current price, percent change in the last hour)
+			else:
+				return (data["data"][0]["quote"]["USD"]["price"], data["data"][0]["quote"]["USD"]["percent_change_1h"])
 
 		# Handle all connection errors
 		except (ConnectionError, Timeout, TooManyRedirects) as error_message:
@@ -336,3 +343,8 @@ if __name__ == "__main__":
 	# app.buy_crypto(2, 4, 3)
 	# print(app.get_total_portfolio_value(1))
 	# print(app.get_total_portfolio_value(2))
+
+	# print(app.get_each_crypto_change(1, 1))
+	# print(app.get_each_crypto_value(1, 1))
+
+	# print(app.get_current_price(1, True))
