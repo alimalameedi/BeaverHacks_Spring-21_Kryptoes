@@ -27,8 +27,9 @@ def query():
 
     # print out records
     c.execute("SELECT *, oid FROM wallet")
-    records = c.fetchall()
-    print(records)
+    records.var = c.fetchall()
+
+    print(records.var)
 
     entries = c.execute("SELECT COUNT() FROM wallet")
 
@@ -39,6 +40,9 @@ def query():
     print(bitcoins)
 
     conn.close()
+
+def return_records():
+    return records.var
 
 # root window
 root = Tk()
