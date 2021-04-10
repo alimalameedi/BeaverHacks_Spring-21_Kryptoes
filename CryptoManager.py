@@ -18,7 +18,8 @@ class CryptoManager():
 		self.connect_server()
 
 		# Data member for database connection
-		self._database_connection = self.connect_database()
+		self._database_connection = None
+		self.connect_database()
 
 	def connect_server(self):
 		"""Connect to the server for the most up-to-date information."""
@@ -50,37 +51,86 @@ class CryptoManager():
 
 
 		# Connect to the database
-		connection = sqlite3.connect("KrypToes.db")
+		self._database_connection = sqlite3.connect("Kryptoes.db")
+		cursor = self._database_connection.cursor()
+
+		# create table for portfolio if it does not already exist
+		cursor.execute("""CREATE TABLE IF NOT EXISTS portfolio (
+						crypto_name text,
+						crypto_id int,
+						quantity float,
+						price float
+						)""")
+
+		"""
+		# create table that keeps track of the cryptocurrencies user has
+		cursor.execute(CREATE TABLE IF NOT EXISTS cryptocurrencies (
+				        crypto_name text
+				        ))
+		"""
+
+		self._database_connection.commit()
+
+	def add_to_portfolio(self, crypto_name, crypto_id, quantity, price):
+		"""
+		Adds a cryptocurrency to user's portfolio
+		"""
+
+		# Connect to database
+		connection = self._database_connection
 		cursor = connection.cursor()
 
-		# left out username and userid for now
-		# table for porfolio: user_id, cryptocurrency_id (integer), holding (float)
-		cursor.execute("""CREATE TABLE portfoliio (
-		              crypto_name text,
-		              crypto_id int,
-		              holding float
-		              )""")
+		# append purchase to portfolio
+		cursor.execute("INSERT INTO portfolio VALUES (:crypto_name, :crypto_id, :quantity, :price)",
+					{
+						"crypto_name": crypto_name,
+						"crypto_id": crypto_id,
+						"quantity": quantity,
+						"price": price
+					})
+
+		"""
+		# retrieve all cryptocurrencies user holds
+		cursor.execute("SELECT crypto_name FROM cryptocurrencies")
+
+		# list of all cryptocurrencies
+		crypto_list = [name[0] for name in cursor.fetchall()]
+
+		# if new crypto, add to user's list of cryptocurrencies
+		if crypto_name not in crypto_list:
+			cursor.execute("INSERT INTO cryptocurrencies VALUES (:crypto_name)",
+							{
+								"crypto_name": crypto_name
+							})
+		"""
 
 		connection.commit()
 
-		return connection
+		# connection.close()
 
-	def get_data(self, crypto_name):
-		"""
-		Takes the name of the cryptocurrency as a parameter and returns the user's data of
-		that particular crypto holding
+	"""
+	def get_total_cryptocurrencies(self):
+		
+		# Returns the total distinct cryptocurrencies user has in portfolio
+	
 
-		:param crypto_name: the name of the cryptocurrency
-		:return: data of user's cryptocurrency
-		"""
+		# connect to database
+		connection = self._database_connection
+		cursor = connection.cursor()
 
-		# create cursor
-		cursor = self._database_connection.cursor()
+		# retrieve number of cryptocurrencies
+		cursor.execute("SELECT COUNT() FROM wallet")
+		total_crypto = cursor.fetchall()
 
-		# obtain and return data
-		cursor.execute("SELECT * FROM wallet WHERE cryptocurrency='%s'" % crypto_name)
-		data = cursor.fetchall()
-		return data
+		# returns the number of cryptocurrencies user has
+		return total_crypto[0]
+	"""
+
+	def get_quantity(self, crypto_name):
+		pass
+
+	def get_price(self):
+		pass
 
 
 	def create_account(self, username, password, cash_amount):
