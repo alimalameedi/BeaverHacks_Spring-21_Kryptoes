@@ -1,7 +1,6 @@
 from tkinter import*
 import sqlite3
 
-
 def enterNewCrypto():
     """
     Opens a new window where user can input the quantity of BTC they own
