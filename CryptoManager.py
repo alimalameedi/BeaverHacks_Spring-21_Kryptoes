@@ -218,6 +218,29 @@ class CryptoManager():
 		#   update the holding for the cryptocurrency
 		self.add_to_portfolio(user_id, crypto_id, -units, price)
 
+	def get_portfolio(self, user_id):
+		"""Take the user id as a parameter and returns the entire portfolio as a dictionary."""
+
+		# Initiate an empty dictionary to contain the user's current portfolio
+		portfolio = {}
+
+		with self._database_connection as connection:
+
+			# Find all distinct cryptocurrency transaction that the user ever made
+			cursor = connection.execute("SELECT DISTINCT crypto_id FROM portfolio "
+		                                "WHERE user_id=?", (user_id, ))
+
+			# For every distinct cryptocurrency, find the quantity that the user hold
+			for crypto in cursor.fetchall():
+				crypto_id = crypto[0]
+				quantity = self.get_quantity(user_id, crypto_id)
+
+				# Only add to the portfolio dictionary if the quantity is above zero
+				if quantity > 0:
+					portfolio[crypto_id] = quantity
+
+		return portfolio
+
 class InsufficientFundError(Exception):
 	"""Raise when the user does not have enough fund to buy any cryptocurrency."""
 	pass
@@ -277,3 +300,9 @@ if __name__ == "__main__":
 
 	# print(app.get_quantity(1, 1))
 	# print(app.get_quantity(2, 1))
+
+	# app.buy_crypto(1, 2, 0.2)
+	# app.buy_crypto(1, 3, 0.3)
+	# app.sell_crypto(1, 1, 0.01)
+
+	print(app.get_portfolio(2))
