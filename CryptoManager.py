@@ -206,7 +206,7 @@ class CryptoManager():
 		# Ensure the user has enough cryptocurrency to be sold
 		holding = self.get_quantity(user_id, crypto_id)
 
-		if holding < units:
+		if holding is None or holding < units:
 			raise InsufficientQuantityError
 
 		price = self.get_current_price(crypto_id)
