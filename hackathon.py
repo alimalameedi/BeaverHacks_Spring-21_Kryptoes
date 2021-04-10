@@ -30,8 +30,14 @@ def query():
     records = c.fetchall()
     print(records)
 
-    # commit and close
-    conn.commit()
+    entries = c.execute("SELECT COUNT() FROM wallet")
+
+    print(entries.fetchone()[0])
+
+    bitcoins = c.execute("SELECT cryptocurrency FROM wallet wherer cryptocurrency='Bitcoin")
+    bitcoins = c.fetchall()
+    print(bitcoins)
+
     conn.close()
 
 # root window
