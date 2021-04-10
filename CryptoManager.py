@@ -91,25 +91,6 @@ class CryptoManager():
 
 		connection.commit()
 
-
-	"""
-	def get_total_cryptocurrencies(self):
-		
-		# Returns the total distinct cryptocurrencies user has in portfolio
-	
-
-		# connect to database
-		connection = self._database_connection
-		cursor = connection.cursor()
-
-		# retrieve number of cryptocurrencies
-		cursor.execute("SELECT COUNT() FROM wallet")
-		total_crypto = cursor.fetchall()
-
-		# returns the number of cryptocurrencies user has
-		return total_crypto[0]
-	"""
-
 	def get_quantity(self, user_id, crypto_id):
 		"""Take the user id, id of the cryptocurrency as parameter and
 		return the quantity of that cryptocurrency that the user holds.
@@ -188,6 +169,15 @@ class CryptoManager():
 		except (ConnectionError, Timeout, TooManyRedirects) as error_message:
 			print(error_message)
 
+	def get_cash_amount(self, user_id):
+		"""Take the user id as a parameter and return the cash amount currently have on hand."""
+		with self._database_connection as connection:
+			cursor = connection.execute("SELECT cash_amount from account "
+		                                "WHERE id=?",
+			                            (user_id, ))
+
+		return cursor.fetchone()[0]
+
 	def buy_crypto(self, user_id, cryto_id, units):
 		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase."""
 
@@ -233,3 +223,6 @@ if __name__ == "__main__":
 	# app.add_to_portfolio(2, 1, "Bitcoin", -1.5, 59448.32)
 	# print(app.get_quantity(2, 1))
 	# print(app.get_prices(2, 1))
+
+	print(app.get_cash_amount(1))
+	print(app.get_cash_amount(2))
