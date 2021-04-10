@@ -18,6 +18,7 @@ try:
               """)
 except:
     print()
+
 def query():
     """ Print out the amount BTC bought """
     # open database and set cursor
@@ -26,12 +27,22 @@ def query():
 
     # print out records
     c.execute("SELECT *, oid FROM wallet")
-    records = c.fetchall()
-    print(records)
+    records.var = c.fetchall()
 
-    # commit and close
-    conn.commit()
+    print(records.var)
+
+    entries = c.execute("SELECT COUNT() FROM wallet")
+
+    print(entries.fetchone()[0])
+
+    bitcoins = c.execute("SELECT cryptocurrency FROM wallet wherer cryptocurrency='Bitcoin")
+    bitcoins = c.fetchall()
+    print(bitcoins)
+
     conn.close()
+
+def return_records():
+    return records.var
 
 # root window
 root = Tk()
