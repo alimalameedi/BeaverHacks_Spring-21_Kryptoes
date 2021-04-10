@@ -8,7 +8,8 @@ class CryptoManager():
 	and connect to an online server for the most up-to-date information."""
 
 	def __init__(self):
-		"""Instantiate the manager object. Connect to the server and SQL database."""
+		"""Instantiate the manager object for managing the account balance and cryptocurrency porfolio.
+		Connect to the server and SQL database."""
 
 		# Create and initialize data members to connect to server
 		self._api_key = None
@@ -22,7 +23,7 @@ class CryptoManager():
 		self.connect_database()
 
 	def connect_server(self):
-		"""Connect to the server for the most up-to-date information."""
+		"""Connect to the server for the most up-to-date cryptocurrency pricing information."""
 
 		# Get the API key from a file
 		with open('API_key.txt', 'r') as reader:
@@ -39,19 +40,13 @@ class CryptoManager():
 		self._session.headers.update(self._header)
 
 	def connect_database(self):
-		"""
-		Connect to database
-
-		:return: a tuple containing the connection
-		"""
-
-		# If database does not already exists, create one.
+		"""Connect to database to store user cash amount and cryptocurrency portfolio."""
 
 		# Connect to the database
 		self._database_connection = sqlite3.connect("Kryptoes.db")
 		cursor = self._database_connection.cursor()
 
-		# Create table for portfolio if it does not already exist
+		# Create table for the portfolio if it does not already exist
 		cursor.execute("""CREATE TABLE IF NOT EXISTS portfolio (
 							user_id int NOT NULL,
 							crypto_id int NOT NULL,
@@ -69,14 +64,12 @@ class CryptoManager():
 		self._database_connection.commit()
 
 	def add_to_portfolio(self, user_id, crypto_id, quantity, price):
-		"""
-		Adds a cryptocurrency to user's portfolio
-		"""
+		"""Take user id, cryptocurrency id, quantity of the crypto to be purchase/sell, the price at the time of transaction as parameters. Adds the transaction of the cryptocurrency to user's portfolio"""
 
 		# Connect to database
 		with self._database_connection as connection:
 
-			# append purchase to portfolio
+			# append purchase/sell to portfolio
 			connection.execute("INSERT INTO portfolio "
 			               "VALUES (:user_id, :crypto_id, :quantity, :price)",
 						{
@@ -86,9 +79,8 @@ class CryptoManager():
 							"price": price
 						})
 
-
 	def get_quantity(self, user_id, crypto_id):
-		"""Take the user id, id of the cryptocurrency as parameter and
+		"""Take the user id, cryptocurrency id as parameters and
 		return the quantity of that cryptocurrency that the user holds.
 		Quantity of any cryptocurrency should never be less than zero."""
 
@@ -101,8 +93,8 @@ class CryptoManager():
 
 
 	def get_prices(self, user_id, crypto_id):
-		"""Take the user id, id of the cryptocurrency as parameter and
-		return a list of all transaction of that cryptocurrency that the user made.
+		"""Take the user id, the cryptocurrency id as parameters and
+		return a list of all transactions of that cryptocurrency that the user made.
 		Each transaction is represented as a 2-tuple:
 			(quantity, price at the time of transaction)
 			A positive quantity represents a purchase, whereas
@@ -144,6 +136,12 @@ class CryptoManager():
 		# TO DO
 		pass
 
+	def lookup_crypto_name(self, cryto_id):
+		"""Take the id of the cryptocurrency (according to coinmarketcap.com) as parameter and
+		return the name of the currency"""
+		# TO DO
+		pass
+
 	def get_current_price(self, cryto_id):
 		"""Take the id of the cryptocurrency as parameter.
 		Query and return the most up-to-date price of that cryptocurrency."""
@@ -169,8 +167,7 @@ class CryptoManager():
 		"""Take the user id as a parameter and return the cash amount currently have on hand."""
 		with self._database_connection as connection:
 			cursor = connection.execute("SELECT cash_amount from account "
-		                                "WHERE id=?",
-			                            (user_id, ))
+		                                "WHERE id=?", (user_id, ))
 
 		return cursor.fetchone()[0]
 
