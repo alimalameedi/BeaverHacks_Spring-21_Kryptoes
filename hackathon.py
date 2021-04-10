@@ -27,12 +27,16 @@ def query():
 
     # print out records
     c.execute("SELECT *, oid FROM wallet")
-    records = c.fetchall()
-    print(records)
+    records.var = c.fetchall()
+
+    print(records.var)
 
     # commit and close
     conn.commit()
     conn.close()
+
+def return_records():
+    return records.var
 
 # root window
 root = Tk()

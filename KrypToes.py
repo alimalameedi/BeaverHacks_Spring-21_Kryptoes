@@ -31,6 +31,10 @@ class KrypToes:
 		self._get_price_button = Button(self._root, text="Get Price", command=self.lookup_price)
 		self._get_price_button.grid(row=1, column=1)
 
+		# Display a button for adding crypto
+		self._add_crypto_button = Button(self._root, text="Get Price", command=self.lookup_price)
+		self._add_crypto_button.pack(side=TOP, anchor=NW)
+
 		# Display a button for buying
 		# TO DO
 
@@ -43,12 +47,81 @@ class KrypToes:
 		# Display the percentage change in porfolio value
 		# TO DO
 
+
 		# Display the percentage change in the last hour (or some other time period)
 		# BONUS
 
 		# Display the login status (username, connection to server/database...)
 		# BONUS
 
+
+	def memeify(self):
+		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
+		# TO DO
+		pur_coin_amt=1
+		act_coin_val=100
+		pur_coin_val=200
+
+		percent_change = (pur_coin_amt * act_coin_val)/pur_coin_val
+		# Determine a meme that correspond to the percentage change for each cryptocurrency in the portfolio
+		if pur_coin_amt * act_coin_val != pur_coin_val:
+
+			if percent_change >= 2:  # if current amt is equal to or greater than 100% of buying price
+				img1 = ImageTk.PhotoImage(Image.open(path.join('images', 'wrestler5.png')))
+				label.configure(image=img1)
+				label.image = img1
+
+			elif 2 > percent_change >= 1.75:
+				img2 = ImageTk.PhotoImage(Image.open(path.join('images', 'wrestler4.png')))
+				label.configure(image=img2)
+				label.image = img2
+
+			elif 1.75 > percent_change >= 1.50:
+				img3 = ImageTk.PhotoImage(Image.open(path.join('images', 'wrestler3.png')))
+				label.configure(image=img3)
+				label.image = img3
+
+			elif 1.50 > percent_change >= 1.25:
+				img4 = ImageTk.PhotoImage(Image.open(path.join('images', 'wrestler2.png')))
+				label.configure(image=img4)
+				label.image = img4
+
+			elif 1.25 > percent_change > pur_coin_val:
+				img5 = ImageTk.PhotoImage(Image.open(path.join('images', 'wrestler1.png')))
+				label.configure(image=img5)
+				label.image = img5
+
+			elif pur_coin_val > percent_change >= .80:
+				img6 = ImageTk.PhotoImage(Image.open(path.join('images', 'clown1.png')))
+				label.configure(image=img6)
+				label.image = img6
+
+			elif .80 > percent_change >= .60:
+				img7 = ImageTk.PhotoImage(Image.open(path.join('images', 'clown2.png')))
+				label.configure(image=img7)
+				label.image = img7
+
+			elif .60 > percent_change >= .40:
+				img8 = ImageTk.PhotoImage(Image.open(path.join('images', 'clown3.png')))
+				label.configure(image=img8)
+				label.image = img8
+
+			elif .40 > percent_change >= .20:
+				img9 = ImageTk.PhotoImage(Image.open(path.join('images', 'clown4.png')))
+				label.configure(image=img9)
+				label.image = img9
+
+			elif .20 > percent_change >= .5:
+				img10 = ImageTk.PhotoImage(Image.open(path.join('images', 'clown5.png')))
+				label.configure(image=img10)
+				label.image = img10
+
+			elif .5 > percent_change:
+				img11 = ImageTk.PhotoImage(Image.open(path.join('images', 'clown6.png')))
+				label.configure(image=img11)
+				label.image = img11
+
+		return label.image
 
 	def update_status(self):
 		"""Update the price/value of each cryptocurrency, total value of the porfolio, and the corresponding meme."""
@@ -61,16 +134,71 @@ class KrypToes:
 		# Update each element in the display with the updated information
 		#   unit price, % change in porfolion value, % change in the last hour, login status...
 
+		class Coin:
+			def __init__(self, name, numbought, buyprice):
+				self.name=name
+				self.numbought=numbought
+				self.buyprice=buyprice
+
+			def get_name(self):
+				return self.name
+
+			def get_numbought(self):
+				return self.numbought
+
+			def get_buyprice(self):
+				return self.buyprice
+
+		bitcoinval=50000
+
+		given_data=[{cryptoname:bitcoin, coinsbought:1, buyprice:500, currentprice:bitcoinval}]
+
+		for item in given_data:
+
+			name=item[cryptoname]
+			numbought=item[coinsbought]
+			buyprice=item[currentprice]
+
+			item[cryptoname] = Coin(name, numbought, buyprice)
+
+			main_img = memeify()
+
+
+
+
+
+
+
+
+
 		# Update the meme. calling the memeify method
+		make_frame = LabelFrame(root, text="Sample Image", width=100, height=100)
+		make_frame.pack()
 
-		pass
+		stim_filename = self.memeify()
 
-	def memeify(self, percent_change):
-		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
-		# TO DO
+		# create the PIL image object:
+		PIL_image = Image.open(stim_filename)
 
-		# Determine a meme that correspond to the percentage change for each cryptocurrency in the porfolio
-		pass
+		width = 100
+		height = 100
+
+		# You may prefer to use Image.thumbnail instead
+		# Set use_resize to False to use Image.thumbnail
+		use_resize = True
+
+		if use_resize:
+			# Image.resize returns a new PIL.Image of the specified size
+			PIL_image_small = PIL_image.resize((width, height), Image.ANTIALIAS)
+		else:
+			# Image.thumbnail converts the image to a thumbnail, in place
+			PIL_image_small = PIL_image
+			PIL_image_small.thumbnail((width, height), Image.ANTIALIAS)
+
+		# now create the ImageTk PhotoImage:
+		img = ImageTk.PhotoImage(PIL_image_small)
+		in_frame = Label(make_frame, image=img)
+		in_frame.pack()
 
 	def create_account(self):
 		"""Create an account for the user to start trading cryptocurrency."""
@@ -136,7 +264,3 @@ class KrypToes:
 
 		# Fun Bonus: show a meme that user successfully make the sell
 		pass
-
-
-if __name__ == "__main__":
-	app = KrypToes()
