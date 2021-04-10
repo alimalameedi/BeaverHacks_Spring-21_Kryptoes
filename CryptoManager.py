@@ -241,6 +241,26 @@ class CryptoManager():
 
 		return portfolio
 
+	def get_each_crypto_value(self, user_id, crypto_id):
+		"""Take the user id and the cryptocurrency id as parameters and
+		returns the value (in US dollar) of the cryptocurrency."""
+
+		quantity = self.get_quantity(user_id, crypto_id)
+		price = self.get_current_price(crypto_id)
+		
+		return quantity * price
+
+	def get_total_portfolio_value(self, user_id):
+		"""Take the user id as a parameter and return the total worth of the portfolio."""
+
+		portfolio = self.get_portfolio(user_id)
+
+		total_value = 0
+		for crypto_id in portfolio:
+			total_value += self.get_each_crypto_value(user_id, crypto_id)
+
+		return total_value
+
 class InsufficientFundError(Exception):
 	"""Raise when the user does not have enough fund to buy any cryptocurrency."""
 	pass
@@ -305,4 +325,14 @@ if __name__ == "__main__":
 	# app.buy_crypto(1, 3, 0.3)
 	# app.sell_crypto(1, 1, 0.01)
 
-	print(app.get_portfolio(2))
+	# print(app.get_portfolio(2))
+
+	# print(app.get_each_crypto_value(1, 1))
+	# print(app.get_each_crypto_value(1, 2))
+	# print(app.get_each_crypto_value(1, 3))
+
+	# app.buy_crypto(2, 2, 1)
+	# app.buy_crypto(2, 3, 2)
+	# app.buy_crypto(2, 4, 3)
+	# print(app.get_total_portfolio_value(1))
+	# print(app.get_total_portfolio_value(2))
