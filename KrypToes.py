@@ -111,17 +111,18 @@ class PanelManager:
 	"""
 	def __init__(self, app, assets):
 		self._root = app.get_root()
-
+		# to do
 		self._panels = [[]]
 		self._row = 0
 		self._col = 0
 
 	def create_panel(self, crypto_name, image):
 		"""
-		Create panel for each of User's assets
+		Create panels for each of User's assets
 		"""
 		panel = Panel(self._root, crypto_name, image, self._row, self._col)
 		panel.display()
+
 		if self._col > 0:
 
 			self._row += 1
@@ -134,6 +135,7 @@ class PanelManager:
 		pass
 
 class Panel:
+	""" A panel on the main page. Displays the asset name, the value, and the meme """
 	def __init__(self, root, crypto_name, image, row, col):
 		self._root = root
 		self._crypto_name = crypto_name
@@ -142,15 +144,18 @@ class Panel:
 		self._col = col
 
 	def display(self):
+		# Creates the frame in which the meme and data will go into
 		labelFrame = LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name, font = ("Verdana", 16, "bold"))
 		labelFrame.grid(row = self._row, column = self._col, pady = 10, padx = 10)
 		labelFrame.grid_propagate(0)
 
+		# displays the total value of the asset
 		price_label = Label(labelFrame, text = "$0.0000", font = ("Verdana", 8))
 		price_label.place(x = 5, y = 0)
 
-	def get_crypto_name(self):
-		return self._crypto_name
+		# TO-DO
+		# INSERT IMAGE WITHIN FRAME
+
 
 	def set_image(self, image):
 		self._image = image
