@@ -77,7 +77,7 @@ class CryptoManager():
 			for row in reader:
 				id, name = int(row[0]), row[1]
 				self._crypto_name[id] = name
-				self._crypto_id[name] = id
+				self._crypto_id[name.lower()] = id
 
 	def add_to_portfolio(self, user_id, crypto_id, quantity, price):
 		"""Take user id, cryptocurrency id, quantity of the crypto to be purchase/sell, the price at the time of transaction as parameters. Adds the transaction of the cryptocurrency to user's portfolio"""
@@ -146,17 +146,23 @@ class CryptoManager():
 		#BONUS
 		pass
 
-	def lookup_id(self, cryto_name):
+	def lookup_crypto_id(self, crypto_name):
 		"""Take the name of the cryptocurrency as parameter and
 		return the id of the currency according to coinmarketcap.com"""
-		# TO DO
-		pass
 
-	def lookup_crypto_name(self, cryto_id):
+		try:
+			return self._crypto_id[crypto_name.lower()]
+		except KeyError:
+			return "This cryptocurrency does not exist!"
+
+	def lookup_crypto_name(self, crypto_id):
 		"""Take the id of the cryptocurrency (according to coinmarketcap.com) as parameter and
 		return the name of the currency"""
-		# TO DO
-		pass
+
+		try:
+			return self._crypto_name[crypto_id]
+		except KeyError:
+			return "This cryptocurrency does not exist!"
 
 	def get_current_price(self, crypto_id, get_percent_change=False):
 		"""Take the id of the cryptocurrency as parameter.
@@ -364,3 +370,5 @@ if __name__ == "__main__":
 	# print(app.get_each_crypto_value(1, 1))
 
 	# print(app.get_current_price(1, True))
+
+	# print(app.lookup_crypto_id("Dogecoin"))
