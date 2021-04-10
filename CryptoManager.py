@@ -53,6 +53,7 @@ class CryptoManager():
 
 		# Create table for portfolio if it does not already exist
 		cursor.execute("""CREATE TABLE IF NOT EXISTS portfolio (
+							user_id int NOT NULL,
 							crypto_id int NOT NULL,
 							crypto_name text,
 							quantity float NOT NULL,
@@ -66,13 +67,9 @@ class CryptoManager():
 							cash_amount float NOT NULL
 						)""")
 
-		# May remove later if account login functionality is implemented
-		# Create a temporary user with initiate cash amount of $10,000.00
-		self.create_account("Elon", 10000)
-
 		self._database_connection.commit()
 
-	def add_to_portfolio(self, crypto_id, crypto_name, quantity, price):
+	def add_to_portfolio(self, user_id, crypto_id, crypto_name, quantity, price):
 		"""
 		Adds a cryptocurrency to user's portfolio
 		"""
@@ -83,8 +80,9 @@ class CryptoManager():
 
 		# append purchase to portfolio
 		cursor.execute("INSERT INTO portfolio "
-		               "VALUES (:crypto_id, :crypto_name, :quantity, :price)",
+		               "VALUES (:user_id, :crypto_id, :crypto_name, :quantity, :price)",
 					{
+						"user_id": user_id,
 						"crypto_id": crypto_id,
 						"crypto_name": crypto_name,
 						"quantity": quantity,
@@ -112,20 +110,21 @@ class CryptoManager():
 		return total_crypto[0]
 	"""
 
-	def get_quantity(self, crypto_id):
-		"""Take the id of the cryptocurrency as parameter and
+	def get_quantity(self, user_id, crypto_id):
+		"""Take the user id, id of the cryptocurrency as parameter and
 		return the quantity of that cryptocurrency that the user holds.
 		Quantity of any cryptocurrency should never be less than zero."""
 
 		with self._database_connection as connection:
 			cursor = connection.execute("SELECT sum(quantity) from portfolio "
-		                                "WHERE crypto_id=?", (crypto_id,))
+		                                "WHERE user_id=? AND crypto_id=?",
+			                            (user_id, crypto_id,))
 
 		return cursor.fetchone()[0]
 
 
-	def get_prices(self, crypto_id):
-		"""Take the id of the cryptocurrency as parameter and
+	def get_prices(self, user_id, crypto_id):
+		"""Take the user id, id of the cryptocurrency as parameter and
 		return a list of all transaction of that cryptocurrency that the user made.
 		Each transaction is represented as a 2-tuple:
 			(quantity, price at the time of transaction)
@@ -134,7 +133,8 @@ class CryptoManager():
 
 		with self._database_connection as connection:
 			cursor = connection.execute("SELECT quantity, price from portfolio "
-			                            "WHERE crypto_id=?", (crypto_id,))
+			                            "WHERE user_id=? AND crypto_id=?",
+			                            (user_id, crypto_id,))
 
 		return cursor.fetchall()
 
@@ -188,9 +188,6 @@ class CryptoManager():
 		except (ConnectionError, Timeout, TooManyRedirects) as error_message:
 			print(error_message)
 
-		# TO DO
-
-
 	def buy_crypto(self, user_id, cryto_id, units):
 		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase."""
 
@@ -220,3 +217,19 @@ if __name__ == "__main__":
 
 	# Test code
 	app = CryptoManager()
+
+	# # Create a temporary user with initiate cash amount of $10,000.00
+	# app.create_account("Elon", 10000.00)
+	# app.create_account("Bezos", 20000.00)
+	#
+	# app.add_to_portfolio(1, 1, "Bitcoin", 1.2, 59408.60)
+	# app.add_to_portfolio(1, 1, "Bitcoin", 2.5, 59400.99)
+	# app.add_to_portfolio(1, 1, "Bitcoin", -1.0, 59448.32)
+	# print(app.get_quantity(1, 1))
+	# print(app.get_prices(1, 1))
+
+	# app.add_to_portfolio(2, 1, "Bitcoin", 3.0, 59408.60)
+	# app.add_to_portfolio(2, 1, "Bitcoin", 1.0, 59400.99)
+	# app.add_to_portfolio(2, 1, "Bitcoin", -1.5, 59448.32)
+	# print(app.get_quantity(2, 1))
+	# print(app.get_prices(2, 1))
