@@ -46,9 +46,6 @@ class CryptoManager():
 		"""
 
 		# If database does not already exists, create one.
-		# table for user data: user_id, username (string), hashed_password (string), cash_amount (float)
-			# BONUS
-
 
 		# Connect to the database
 		self._database_connection = sqlite3.connect("Kryptoes.db")
@@ -56,28 +53,22 @@ class CryptoManager():
 
 		# Create table for portfolio if it does not already exist
 		cursor.execute("""CREATE TABLE IF NOT EXISTS portfolio (
-							crypto_id int,
+							crypto_id int NOT NULL,
 							crypto_name text,
-							quantity float,
-							price float
+							quantity float NOT NULL,
+							price float NOT NULL
 						)""")
 
 		# Create table that keeps track of the cash amount the user has on hand
 		cursor.execute("""CREATE TABLE IF NOT EXISTS account (
-							user_id int,
-							user_name text,
-							cash_amount float
+							id INTEGER PRIMARY KEY,
+							user_name text NOT NULL,
+							cash_amount float NOT NULL
 						)""")
 
 		# May remove later if account login functionality is implemented
 		# Create a temporary user with initiate cash amount of $10,000.00
-		cursor.execute("INSERT INTO account "
-		               "VALUES (:user_id, :user_name, :cash_amount)",
-		               {
-			               "user_id": 1,
-			               "user_name": "Elon",
-			               "cash_amount": 10000.00
-		               })
+		self.create_account("Elon", 10000)
 
 		self._database_connection.commit()
 
@@ -148,10 +139,16 @@ class CryptoManager():
 		return cursor.fetchall()
 
 
-	def create_account(self, username, password, cash_amount):
+	def create_account(self, username, cash_amount):
 		"""Create an user account."""
-		#BONUS
-		pass
+
+		with self._database_connection as connection:
+			cursor = connection.execute("INSERT INTO account(user_name, cash_amount) "
+				        "VALUES (:user_name, :cash_amount)",
+				        {
+			               "user_name": username,
+			               "cash_amount": cash_amount
+				        })
 
 	def hash_password(self, password):
 		"""Encrypt the password."""
@@ -219,5 +216,6 @@ class CryptoManager():
 		pass
 
 if __name__ == "__main__":
+
+	# Test code
 	app = CryptoManager()
-	print(app.get_prices(1))
