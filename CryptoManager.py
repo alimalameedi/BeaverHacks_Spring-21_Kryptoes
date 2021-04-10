@@ -2,6 +2,7 @@ from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
 import sqlite3
+import csv
 
 class CryptoManager():
 	"""Backend of the Kryp-Toes application to manage the cryptocurrency porfolio
@@ -21,6 +22,11 @@ class CryptoManager():
 		# Data member for database connection
 		self._database_connection = None
 		self.connect_database()
+
+		# Load id and name reference of the top 100 cryptocurrency
+		self._crypto_name = {}
+		self._crypto_id = {}
+		self.load_crypto_reference()
 
 	def connect_server(self):
 		"""Connect to the server for the most up-to-date cryptocurrency pricing information."""
@@ -62,6 +68,16 @@ class CryptoManager():
 						)""")
 
 		self._database_connection.commit()
+
+	def load_crypto_reference(self):
+		"""Load id and name references of the top 100 cryptocurrency and saved to dictionaries."""
+
+		with open("crypto_reference.csv", newline='', encoding='utf-8') as csvfile:
+			reader = csv.reader(csvfile)
+			for row in reader:
+				id, name = int(row[0]), row[1]
+				self._crypto_name[id] = name
+				self._crypto_id[name] = id
 
 	def add_to_portfolio(self, user_id, crypto_id, quantity, price):
 		"""Take user id, cryptocurrency id, quantity of the crypto to be purchase/sell, the price at the time of transaction as parameters. Adds the transaction of the cryptocurrency to user's portfolio"""
