@@ -4,6 +4,7 @@ import json
 import sqlite3
 import csv
 
+
 class CryptoManager():
 	"""Backend of the Kryp-Toes application to manage the cryptocurrency porfolio
 	and connect to an online server for the most up-to-date information."""
@@ -84,16 +85,15 @@ class CryptoManager():
 
 		# Connect to database
 		with self._database_connection as connection:
-
 			# append purchase/sell to portfolio
 			connection.execute("INSERT INTO portfolio "
-			               "VALUES (:user_id, :crypto_id, :quantity, :price)",
-						{
-							"user_id": user_id,
-							"crypto_id": crypto_id,
-							"quantity": quantity,
-							"price": price
-						})
+			                   "VALUES (:user_id, :crypto_id, :quantity, :price)",
+			                   {
+				                   "user_id": user_id,
+				                   "crypto_id": crypto_id,
+				                   "quantity": quantity,
+				                   "price": price
+			                   })
 
 	def get_quantity(self, user_id, crypto_id):
 		"""Take the user id, cryptocurrency id as parameters and
@@ -102,11 +102,10 @@ class CryptoManager():
 
 		with self._database_connection as connection:
 			cursor = connection.execute("SELECT sum(quantity) from portfolio "
-		                                "WHERE user_id=? AND crypto_id=?",
+			                            "WHERE user_id=? AND crypto_id=?",
 			                            (user_id, crypto_id,))
 
 		return cursor.fetchone()[0]
-
 
 	def get_prices(self, user_id, crypto_id):
 		"""Take the user id, the cryptocurrency id as parameters and
@@ -123,55 +122,31 @@ class CryptoManager():
 
 		return cursor.fetchall()
 
-
 	def create_account(self, username, cash_amount):
 		"""Take username and cash amount as parameter and
 		create an user account in the database."""
 
 		with self._database_connection as connection:
 			cursor = connection.execute("INSERT INTO account(user_name, cash_amount) "
-				        "VALUES (:user_name, :cash_amount)",
-				        {
-			               "user_name": username,
-			               "cash_amount": cash_amount
-				        })
+			                            "VALUES (:user_name, :cash_amount)",
+			                            {
+				                            "user_name": username,
+				                            "cash_amount": cash_amount
+			                            })
 
 	def hash_password(self, password):
 		"""Encrypt the password."""
-		#BONUS
+		# BONUS
 		pass
 
 	def authenticate(self, username, hashed_password):
 		"""Take username and password as parameter and authenticate the current user."""
-		#BONUS
+		# BONUS
 		pass
 
 	def lookup_crypto_id(self, crypto_name):
 		"""Take the name of the cryptocurrency as parameter and
 		return the id of the currency according to coinmarketcap.com"""
-
-
-	def lookup_crypto_name(self, crypto_id):
-		"""
-		Return Name of Crypto
-
-		:
-		"""
-		# Parameters for Query
-		parameters = {
-			"start": crypto_id,
-			"limit": "1",
-			"convert": "USD"
-		}
-
-		# Pull cryptocurrency data from the server
-		try:
-			response = self._session.get(self._url, params=parameters)
-			data = json.loads(response.text)
-			return data["data"][0]["name"]
-		except (ConnectionError, Timeout, TooManyRedirects) as error_message:
-			print(error_message)
-
 
 		try:
 			return self._crypto_id[crypto_name.lower()]
@@ -186,7 +161,6 @@ class CryptoManager():
 			return self._crypto_name[crypto_id]
 		except KeyError:
 			return "This cryptocurrency does not exist!"
-
 
 	def get_current_price(self, crypto_id, get_percent_change=False):
 		"""Take the id of the cryptocurrency as parameter.
@@ -220,7 +194,7 @@ class CryptoManager():
 		"""Take the user id as a parameter and return the cash amount currently have on hand."""
 		with self._database_connection as connection:
 			cursor = connection.execute("SELECT cash_amount from account "
-		                                "WHERE id=?", (user_id, ))
+			                            "WHERE id=?", (user_id,))
 
 		return cursor.fetchone()[0]
 
@@ -233,7 +207,7 @@ class CryptoManager():
 		with self._database_connection as connection:
 			cursor = connection.execute("UPDATE account "
 			                            "SET cash_amount=? "
-		                                "WHERE id=?",
+			                            "WHERE id=?",
 			                            (cash_after_change, user_id))
 
 	def buy_crypto(self, user_id, crypto_id, units):
@@ -251,7 +225,6 @@ class CryptoManager():
 
 		#   update the holding for the cryptocurrency
 		self.add_to_portfolio(user_id, crypto_id, units, price)
-
 
 	def sell_crypto(self, user_id, crypto_id, units):
 		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell."""
@@ -281,7 +254,7 @@ class CryptoManager():
 
 			# Find all distinct cryptocurrency transaction that the user ever made
 			cursor = connection.execute("SELECT DISTINCT crypto_id FROM portfolio "
-		                                "WHERE user_id=?", (user_id, ))
+			                            "WHERE user_id=?", (user_id,))
 
 			# For every distinct cryptocurrency, find the quantity that the user hold
 			for crypto in cursor.fetchall():
@@ -300,7 +273,7 @@ class CryptoManager():
 
 		quantity = self.get_quantity(user_id, crypto_id)
 		price = self.get_current_price(crypto_id)
-		
+
 		return quantity * price
 
 	def get_total_portfolio_value(self, user_id):
@@ -314,89 +287,87 @@ class CryptoManager():
 
 		return total_value
 
+
 class InsufficientFundError(Exception):
 	"""Raise when the user does not have enough fund to buy any cryptocurrency."""
 	pass
+
 
 class InsufficientQuantityError(Exception):
 	"""Raise when the user does not have enough quantity of the cryptocurrency being sold."""
 	pass
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
 	# Test code
 	app = CryptoManager()
 
-	# Create a temporary user with initiate cash amount of $10,000.00
-	# app.create_account("Elon", 10000.00)
-	# app.create_account("Bezos", 20000.00)
-	#
-	# app.add_to_portfolio(1, 1, "Bitcoin", 1.2, 59408.60)
-	# app.add_to_portfolio(1, 1, "Bitcoin", 2.5, 59400.99)
-	# app.add_to_portfolio(1, 1, "Bitcoin", -1.0, 59448.32)
-	# print(app.get_quantity(1, 1))
-	# print(app.get_prices(1, 1))
+# Create a temporary user with initiate cash amount of $10,000.00
+app.create_account("Elon", 10000.00)
+# app.create_account("Bezos", 20000.00)
+#
+# app.add_to_portfolio(1, 1, "Bitcoin", 1.2, 59408.60)
+# app.add_to_portfolio(1, 1, "Bitcoin", 2.5, 59400.99)
+# app.add_to_portfolio(1, 1, "Bitcoin", -1.0, 59448.32)
+# print(app.get_quantity(1, 1))
+# print(app.get_prices(1, 1))
 
-	# app.add_to_portfolio(2, 1, "Bitcoin", 3.0, 59408.60)
-	# app.add_to_portfolio(2, 1, "Bitcoin", 1.0, 59400.99)
-	# app.add_to_portfolio(2, 1, "Bitcoin", -1.5, 59448.32)
-	# print(app.get_quantity(2, 1))
-	# print(app.get_prices(2, 1))
-	#
-	# print(app.get_cash_amount(1))
-	# print(app.get_cash_amount(2))
+# app.add_to_portfolio(2, 1, "Bitcoin", 3.0, 59408.60)
+# app.add_to_portfolio(2, 1, "Bitcoin", 1.0, 59400.99)
+# app.add_to_portfolio(2, 1, "Bitcoin", -1.5, 59448.32)
+# print(app.get_quantity(2, 1))
+# print(app.get_prices(2, 1))
+#
+# print(app.get_cash_amount(1))
+# print(app.get_cash_amount(2))
 
-	# raise InsufficientFundError
-	# raise InsufficientQuantityError
+# raise InsufficientFundError
+# raise InsufficientQuantityError
 
-	# app.buy_crypto(1, 1, 0.001)
-	# app.update_cash_amount(1, 1000.00)
-	# app.update_cash_amount(2, -1000.00)
+# app.buy_crypto(1, 1, 0.001)
+# app.update_cash_amount(1, 1000.00)
+# app.update_cash_amount(2, -1000.00)
 
-	# app.buy_crypto(1, 1, 0.01)
-	# app.buy_crypto(2, 1, 0.01)
+# app.buy_crypto(1, 1, 0.01)
+# app.buy_crypto(2, 1, 0.01)
 
-	# try:
-	# 	app.buy_crypto(1, 1, 1)
-	# 	app.buy_crypto(2, 1, 1)
-	# except InsufficientFundError:
-	# 	print("You are too poor to invest!")
+# try:
+# 	app.buy_crypto(1, 1, 1)
+# 	app.buy_crypto(2, 1, 1)
+# except InsufficientFundError:
+# 	print("You are too poor to invest!")
 
-	# try:
-	# 	app.sell_crypto(1, 1, 1)
-	# 	app.sell_crypto(2, 1, 1)
-	# except InsufficientQuantityError:
-	# 	print("You are don't even have enough to sell!")
+# try:
+# 	app.sell_crypto(1, 1, 1)
+# 	app.sell_crypto(2, 1, 1)
+# except InsufficientQuantityError:
+# 	print("You are don't even have enough to sell!")
 
-	# app.sell_crypto(1, 1, 0.02)
-	# app.sell_crypto(2, 1, 0.01)
+# app.sell_crypto(1, 1, 0.02)
+# app.sell_crypto(2, 1, 0.01)
 
-	# print(app.get_quantity(1, 1))
-	# print(app.get_quantity(2, 1))
+# print(app.get_quantity(1, 1))
+# print(app.get_quantity(2, 1))
 
-	# app.buy_crypto(1, 2, 0.2)
-	# app.buy_crypto(1, 3, 0.3)
-	# app.sell_crypto(1, 1, 0.01)
+# app.buy_crypto(1, 2, 0.2)
+# app.buy_crypto(1, 3, 0.3)
+# app.sell_crypto(1, 1, 0.01)
 
-	# print(app.get_portfolio(2))
+# print(app.get_portfolio(2))
 
-	# print(app.get_each_crypto_value(1, 1))
-	# print(app.get_each_crypto_value(1, 2))
-	# print(app.get_each_crypto_value(1, 3))
+# print(app.get_each_crypto_value(1, 1))
+# print(app.get_each_crypto_value(1, 2))
+# print(app.get_each_crypto_value(1, 3))
 
-	# app.buy_crypto(2, 2, 1)
-	# app.buy_crypto(2, 3, 2)
-	# app.buy_crypto(2, 4, 3)
-	# print(app.get_total_portfolio_value(1))
-	# print(app.get_total_portfolio_value(2))
+# app.buy_crypto(2, 2, 1)
+# app.buy_crypto(2, 3, 2)
+# app.buy_crypto(2, 4, 3)
+# print(app.get_total_portfolio_value(1))
+# print(app.get_total_portfolio_value(2))
 
-	# print(app.get_each_crypto_change(1, 1))
-	# print(app.get_each_crypto_value(1, 1))
+# print(app.get_each_crypto_change(1, 1))
+# print(app.get_each_crypto_value(1, 1))
 
+# print(app.get_current_price(1, True))
 
-	# print(app.get_current_price(1, True))
-
-	# print(app.get_current_price(1, True))
-
-	# print(app.lookup_crypto_id("Dogecoin"))
-
+# print(app.get_portfolio(1))
