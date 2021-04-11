@@ -171,7 +171,6 @@ class CryptoManager():
 		try:
 			response = self._session.get(self._url, params=parameters)
 			data = json.loads(response.text)
-
 			# If the no need for getting the percent change, then just return the current price
 			if not get_percent_change:
 				return data["data"][0]["quote"]["USD"]["price"]
