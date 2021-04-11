@@ -303,7 +303,7 @@ if __name__ == "__main__":
 	app = CryptoManager()
 
 # Create a temporary user with initiate cash amount of $10,000.00
-app.create_account("Elon", 10000.00)
+# app.create_account("Elon", 10000.00)
 # app.create_account("Bezos", 20000.00)
 #
 # app.add_to_portfolio(1, 1, "Bitcoin", 1.2, 59408.60)
