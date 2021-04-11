@@ -1,8 +1,13 @@
 from tkinter import ttk
+import threading
+from ttkthemes import ThemedTk, THEMES
+from ttkthemes import themed_tk as tk
+import os
+from CryptoManager import CryptoManager
+from tkinter import ttk
 import os
 from CryptoManager import CryptoManager, InsufficientFundError, InsufficientQuantityError
 from tkinter import *
-from ttkthemes import ThemedTk, THEMES
 from PIL import ImageTk, Image
 from os import path
 
@@ -40,6 +45,26 @@ class KrypToes:
 			return False
 
 	def initiate_elements(self):
+		# root window
+		self._root.set_theme('equilux')
+		self._root.title("Cryp-toes!")
+
+
+		self._root.wm_iconbitmap(path.join('images',"doggo.ico"))
+		self._root.geometry("425x425")
+
+		# Enter BTC value window
+		enterButton = ttk.Button(self._root, text="Add cryptocurrency")
+		enterButton.grid(row=0, column=0)
+
+		enterButton = ttk.Button(self._root, text="Buy new cryptocurrency")
+		enterButton.grid(row=0, column=1)
+
+		# query
+		query_btn = ttk.Button(self._root, text="Look up Price", command=self.lookup_price)
+		query_btn.grid(row=0, column=2)
+
+
 		# root window
 		self._root.set_theme('equilux')
 		self._root.title("Cryp-toes!")
@@ -147,6 +172,19 @@ class KrypToes:
 	def lookup_price(self, crypto_name):
 		"""Let the user to enter the name of the cryptocurrency and
 		show the current price (per unit) of that cryptocurrency."""
+
+		def show_price():
+			"""Query the price of the cryptocurrency and show it in the popup window."""
+
+			input = self._popup_input.get()
+
+			# TO DO
+			# Allow searching for the cryptocurrency id by its name
+
+			price = self._app.get_current_price("1")
+			message = f"The current price of {input} is ${price:.2f} per unit."
+			self._popup_price = Label(self._popup, text=message)
+			self._popup_price.grid(row=3, column=0)
 
 		# Create a popup window to ask the user for which cryptocurrency to show the price
 		self._popup = Toplevel()
@@ -337,7 +375,7 @@ class PanelManager:
 
 		# CryptoManager to get data from back-end database
 		self._manager = manager
-
+		self._panel_list = []
 		# rows and cols to organize/format main page
 		self._row = 1
 		self._col = 0
@@ -354,11 +392,13 @@ class PanelManager:
 		# assets = self._manager.get_portfolio(self._user_id) 		# commented out so we do not use token
 
 		# fake data so we do not use all our tokens
-		assets = {1: 100.11, 2: 2, 3: 50.11}
+		assets = {1: 100.11, 2: 2, 3: 50.20}
 		names = {1: "Bitcoin", 2: "Ethereum", 3: "BinanceCoin"}
 		amounts= {1: 5.7, 2: 8.9, 3: .33}
 
 		# loop through each asset and retrieve the name, and value
+		#threading.Timer(5.0, self.create_all_panels).start()
+		self.clear_panels(self._panel_list)
 		for crypto_id in assets:
 
 			# retrieve value
@@ -375,6 +415,9 @@ class PanelManager:
 			self.create_panel(crypto_name, value, crypto_amounts)
 
 
+	def clear_panels(self, list):
+		for item in list:
+			item.destroy_frame()
 
 	def create_panel(self, crypto_name, value, crypto_amounts):
 		"""
@@ -382,7 +425,7 @@ class PanelManager:
 		"""
 		# create panel object
 		panel = Panel(self._root, crypto_name, value, crypto_amounts, self._row, self._col)
-
+		self._panel_list.append(panel)
 		# display panel
 		panel.display()
 
@@ -412,12 +455,29 @@ class Panel:
 		# where the panel is on the main page
 		self._row = row
 		self._col = col
+		self._frame=None
+		self._image_lable=None
+
+
+	def destroy_frame(self):
+		self._frame.destroy()
+		self._image_lable.destroy()
+
+	"""def __delete__(self, instance):
+		del self._root
+		del self._crypto_name
+		del self._value
+		del self._image
+		del self._row
+		del self._col"""
 
 	def display(self):
 		# Creates the frame in which the meme and data will go into
+		labelFrame = LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
 		labelFrame = ttk.LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
 		labelFrame.grid(row = self._row, column = self._col, pady = 10, padx = 10)
 		labelFrame.grid_propagate(0)
+		self._frame=labelFrame
 
 		# displays the total value of the asset
 		price_label = ttk.Label(labelFrame, text = "$" + str(round(self._value, 2)))
@@ -427,12 +487,7 @@ class Panel:
 		image_label = Label(self._root, image=self._image)
 		image_label.photo = self._image
 		image_label.grid(row = self._row, column = self._col)
-
-
-
-	def set_image(self, image):
-		""" Honestly, we may not need this """
-		self._image = image
+		self._image_lable=image_label
 
 if __name__ == "__main__":
 	KrypToes = KrypToes()
