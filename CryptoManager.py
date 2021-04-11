@@ -2,6 +2,7 @@ from requests import Request, Session
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import json
 import sqlite3
+import csv
 
 class CryptoManager():
 	"""Backend of the Kryp-Toes application to manage the cryptocurrency porfolio
@@ -21,6 +22,11 @@ class CryptoManager():
 		# Data member for database connection
 		self._database_connection = None
 		self.connect_database()
+
+		# Load id and name reference of the top 100 cryptocurrency
+		self._crypto_name = {}
+		self._crypto_id = {}
+		self.load_crypto_reference()
 
 	def connect_server(self):
 		"""Connect to the server for the most up-to-date cryptocurrency pricing information."""
@@ -62,6 +68,16 @@ class CryptoManager():
 						)""")
 
 		self._database_connection.commit()
+
+	def load_crypto_reference(self):
+		"""Load id and name references of the top 100 cryptocurrency and saved to dictionaries."""
+
+		with open("crypto_reference.csv", newline='', encoding='utf-8') as csvfile:
+			reader = csv.reader(csvfile)
+			for row in reader:
+				id, name = int(row[0]), row[1]
+				self._crypto_name[id] = name
+				self._crypto_id[name.lower()] = id
 
 	def add_to_portfolio(self, user_id, crypto_id, quantity, price):
 		"""Take user id, cryptocurrency id, quantity of the crypto to be purchase/sell, the price at the time of transaction as parameters. Adds the transaction of the cryptocurrency to user's portfolio"""
@@ -130,11 +146,10 @@ class CryptoManager():
 		#BONUS
 		pass
 
-	def lookup_id(self, cryto_name):
+	def lookup_crypto_id(self, crypto_name):
 		"""Take the name of the cryptocurrency as parameter and
 		return the id of the currency according to coinmarketcap.com"""
-		# TO DO
-		pass
+
 
 	def lookup_crypto_name(self, crypto_id):
 		"""
@@ -156,6 +171,22 @@ class CryptoManager():
 			return data["data"][0]["name"]
 		except (ConnectionError, Timeout, TooManyRedirects) as error_message:
 			print(error_message)
+
+
+		try:
+			return self._crypto_id[crypto_name.lower()]
+		except KeyError:
+			return "This cryptocurrency does not exist!"
+
+	def lookup_crypto_name(self, crypto_id):
+		"""Take the id of the cryptocurrency (according to coinmarketcap.com) as parameter and
+		return the name of the currency"""
+
+		try:
+			return self._crypto_name[crypto_id]
+		except KeyError:
+			return "This cryptocurrency does not exist!"
+
 
 	def get_current_price(self, crypto_id, get_percent_change=False):
 		"""Take the id of the cryptocurrency as parameter.
@@ -362,4 +393,10 @@ if __name__ == "__main__":
 	# print(app.get_each_crypto_change(1, 1))
 	# print(app.get_each_crypto_value(1, 1))
 
+
 	# print(app.get_current_price(1, True))
+
+	# print(app.get_current_price(1, True))
+
+	# print(app.lookup_crypto_id("Dogecoin"))
+
