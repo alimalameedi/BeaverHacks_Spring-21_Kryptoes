@@ -26,6 +26,8 @@ class KrypToes:
 		# Set up the GUI using tkinter
 		self._root = ThemedTk(themebg=True)
 		self.initiate_elements()
+		value_label = ttk.Label(text="Total value of your assets: " + str(self._app.get_total_portfolio_value(1)))
+		value_label.grid(row=4, column=1)
 
 	def get_manager(self):
 		return self._app
@@ -47,31 +49,10 @@ class KrypToes:
 	def initiate_elements(self):
 		# root window
 		self._root.set_theme('equilux')
-		self._root.title("Cryp-toes!")
-
+		self._root.title("Kryp-toes!")
 
 		self._root.wm_iconbitmap(path.join('images',"doggo.ico"))
 		self._root.geometry("425x425")
-
-		# Enter BTC value window
-		enterButton = ttk.Button(self._root, text="Add cryptocurrency")
-		enterButton.grid(row=0, column=0)
-
-		enterButton = ttk.Button(self._root, text="Buy new cryptocurrency")
-		enterButton.grid(row=0, column=1)
-
-		# query
-		query_btn = ttk.Button(self._root, text="Look up Price", command=self.lookup_price)
-		query_btn.grid(row=0, column=2)
-
-
-		# root window
-		self._root.set_theme('equilux')
-		self._root.title("Cryp-toes!")
-
-		if "nt" == os.name:
-			self._root.wm_iconbitmap(bitmap = "images/doggo.ico")
-			self._root.geometry("700x300")
 
 		# Search for crypto
 		text_box = ttk.Entry(self._root, width = 15)
@@ -176,16 +157,6 @@ class KrypToes:
 		def show_price():
 			"""Query the price of the cryptocurrency and show it in the popup window."""
 
-			input = self._popup_input.get()
-
-			# TO DO
-			# Allow searching for the cryptocurrency id by its name
-
-			price = self._app.get_current_price("1")
-			message = f"The current price of {input} is ${price:.2f} per unit."
-			self._popup_price = Label(self._popup, text=message)
-			self._popup_price.grid(row=3, column=0)
-
 		# Create a popup window to ask the user for which cryptocurrency to show the price
 		self._popup = Toplevel()
 
@@ -215,6 +186,7 @@ class KrypToes:
 
 		# Create a popup window
 		self._popup = Toplevel()
+		self._popup.wm_iconbitmap(path.join('images',"doggo.ico"))
 
 		crypto_id = self.is_valid_crypto(crypto_name)
 
@@ -264,21 +236,31 @@ class KrypToes:
 			units, value = transaction
 			crypto_name = self._app.lookup_crypto_name(crypto_id)
 			receipt_message = f"You purchased {units:.2f} units of {crypto_name} for ${value:.2f}"
+			image = Image.open(path.join('images', 'happy_doggo.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
 
 		except InsufficientFundError:
 
 			# Show the user that he/she has insufficient fund.
-			receipt_message = "You are too poor to invest this much!"
+			receipt_message = "Insufficient Funds!"
+			image = Image.open(path.join('images', 'Sad-Pablo-Escobar.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
 
 		# Add additional row to the popup window with the purchase detail or error message
 		receipt = Label(window, text=receipt_message)
 		receipt.grid(row=4, column=0)
+		sad_label = Label(window, image=show_image)
+		sad_label.photo =show_image
+		sad_label.grid(row=3, column=0)
 
 	def sell_crypto(self, crypto_name):
 		"""Let the user to sell cryptocurrency with available cryptocurrency."""
 
 		# Create a popup window
 		self._popup = Toplevel()
+		self._popup.wm_iconbitmap(path.join('images', "doggo.ico"))
 
 		crypto_id = self.is_valid_crypto(crypto_name)
 
@@ -294,16 +276,21 @@ class KrypToes:
 			if quantity_available is None or abs(quantity_available - 0) < 0.0000000:
 				possible_sell = False
 				availability_message = f"You don't have any of {crypto_name} to sell!"
+
+				image = Image.open(path.join('images', 'Sad-Pablo-Escobar.png'))
+				image = image.resize((150, 150), Image.ANTIALIAS)
+				show_image = ImageTk.PhotoImage(image)
+
 			else:
 				possible_sell = True
+				quantity_available = abs(quantity_available)
 				availability_message = f"You currently have {quantity_available:.2f} units of {crypto_name} in your portfolio."
+
 
 		else:
 			price_message = f"This cryptocurrency does not exist!"
 
 		# Show the current price or error message if the cryptocurrency does not exist
-		self._popup_message = Label(self._popup, text=price_message)
-		self._popup_message.grid(row=0, column=0)
 
 		if crypto_id:
 
@@ -314,7 +301,7 @@ class KrypToes:
 			if possible_sell:
 
 				# User enters the quantity they want to sell
-				self._popup_label = Label(self._popup, text="Sell Quantity:")
+				self._popup_label = ttk.Label(self._popup, text="Sell Quantity:")
 				self._popup_label.grid(row=2, column=0)
 
 				# User entry for quantity
@@ -322,23 +309,40 @@ class KrypToes:
 				self._popup_input.grid(row=3, column=0)
 
 				# Submit button
-				self._popup_button = Button(self._popup, text="Submit", command=lambda: self.sell(1, crypto_id, float(self._popup_input.get()), self._popup))
+				self._popup_button = ttk.Button(self._popup, text="Submit", command=lambda: self.sell(1, crypto_id, float(self._popup_input.get()), self._popup))
 				self._popup_button.grid(row=4, column=0)
 				self._popup.mainloop()
 
 		# Fun Bonus: show a meme that user successfully make the purchase
+				image = Image.open(path.join('images', 'happy_doggo.png'))
+				image = image.resize((150, 150), Image.ANTIALIAS)
+				show_image = ImageTk.PhotoImage(image)
+
+				happy_label = Label(self._popup, image=show_image)
+				happy_label.photo = show_image
+				happy_label.grid(row=3, column=0)
 
 	def sell(self, user_id, crypto_id, quantity, window):
 		"""Take user id, cryptocurrency id, quantity to buy, and the popup window object as parameters.
 		Make the sell and show how much was sold.
 		Otherwise, show the user that he/she has insufficient quantity."""
 
+		crypto_name = self._app.lookup_crypto_name(crypto_id)
+
 		try:
+
 			# Sell through cryptomanager
 			transaction = self._app.sell_crypto(user_id, crypto_id, quantity)
 			units, value = transaction
-			crypto_name = self._app.lookup_crypto_name(crypto_id)
 			receipt_message = f"You sold {units:.2f} units of {crypto_name} for ${value:.2f}"
+
+			# Update available quantity for sell
+			quantity_available = abs(self._app.get_quantity(1, crypto_id))
+			availability_message = f"You currently have {quantity_available:.2f} units of {crypto_name} in your portfolio."
+
+			# Update the availability of the cryptocurrency
+			self._popup_label = Label(self._popup, text=availability_message)
+			self._popup_label.grid(row=1, column=0)
 
 		except InsufficientQuantityError:
 
@@ -346,15 +350,8 @@ class KrypToes:
 			receipt_message = "You don't have enough to sell this much!"
 
 		# Add additional row to the popup window with the purchase detail or error message
-		receipt = Label(window, text=receipt_message)
+		receipt = ttk.Label(window, text=receipt_message)
 		receipt.grid(row=5, column=0)
-
-		# Update available quantity for sell
-		quantity_available = self._app.get_quantity(1, crypto_id)
-		availability_message = f"You currently have {quantity_available:.2f} units of {crypto_name} in your portfolio."
-		# Show the availability of the cryptocurrency
-		self._popup_message = Label(self._popup, text=availability_message)
-		self._popup_message.grid(row=1, column=0)
 
 
 class PanelManager:
@@ -473,7 +470,6 @@ class Panel:
 
 	def display(self):
 		# Creates the frame in which the meme and data will go into
-		labelFrame = LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
 		labelFrame = ttk.LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
 		labelFrame.grid(row = self._row, column = self._col, pady = 10, padx = 10)
 		labelFrame.grid_propagate(0)
