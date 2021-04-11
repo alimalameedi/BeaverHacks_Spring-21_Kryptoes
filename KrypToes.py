@@ -32,9 +32,10 @@ class KrypToes:
 
 		"""
 		try:
-			self._app.lookup_id(crypto_name)
+			return self._app.lookup_crypto_id(crypto_name)
 		except KeyError:
 			print("No such crypto")
+			return False
 
 
 	def initiate_elements(self):
@@ -51,14 +52,14 @@ class KrypToes:
 		text_box.grid(row = 0, column = 0, ipadx = 0)
 
 		# Enter BTC value window
-		enterButton = ttk.Button(self._root, text="Buy", command=lambda :self.buy_crypto(text_box.get()))
-		enterButton.grid(row=0, column=1)
+		buyButton = ttk.Button(self._root, text="Buy", command=lambda :self.buy_crypto(text_box.get()))
+		buyButton.grid(row=0, column=1)
 
-		enterButton = ttk.Button(self._root, text="Sell")
-		enterButton.grid(row=0, column=2)
+		sellButton = ttk.Button(self._root, text="Sell", command=lambda :self.sell_crypto(text_box.get()))
+		sellButton.grid(row=0, column=2)
 
 		# query
-		query_btn = ttk.Button(self._root, text="Look Up Price", command=self.lookup_price)
+		query_btn = ttk.Button(self._root, text="Look Up Price", command=lambda :self.lookup_price(text_box.get()))
 		query_btn.grid(row=0, column=3)
 
 
@@ -143,44 +144,31 @@ class KrypToes:
 		#   unit price, % change in  value, % change in the last hour, login status...
 		pass
 
-	def create_account(self):
-		"""Create an account for the user to start trading cryptocurrency."""
-		#BONUS
-		pass
-
-	def login(self):
-		"""Let the user login using username and password."""
-		#BONUS
-		pass
-
-	def lookup_price(self):
+	def lookup_price(self, crypto_name):
 		"""Let the user to enter the name of the cryptocurrency and
 		show the current price (per unit) of that cryptocurrency."""
 
-		def show_price():
-			"""Query the price of the cryptocurrency and show it in the popup window."""
-
-			input = self._popup_input.get()
-
-			# TO DO
-			# Allow searching for the cryptocurrency id by its name
-
-			price = self._app.get_current_price("1")
-			message = f"The current price of {input} is ${price:.2f} per unit."
-			self._popup_price = Label(self._popup, text=message)
-			self._popup_price.grid(row=3, column=0)
-
 		# Create a popup window to ask the user for which cryptocurrency to show the price
 		self._popup = Toplevel()
-		self._popup_message = Label(self._popup, text="Enter the name of the cryptocurrency:")
+
+		crypto_id = self.is_valid_crypto(crypto_name)
+
+		if crypto_id:
+
+			# Ensure the name is has the correctly Capitalized.
+			crypto_name = self._app.lookup_crypto_name(crypto_id)
+
+			price = self._app.get_current_price(crypto_id)
+
+			message = f"The current price of {crypto_name} is ${price:.2f} per unit."
+
+		else:
+
+			message = f"This cryptocurrency does not exist!"
+
+		self._popup_message = Label(self._popup, text=message)
 		self._popup_message.grid(row=0, column=0)
 
-		self._popup_input = Entry(self._popup)
-
-		self._popup_input.grid(row=1, column=0)
-
-		self._popup_search = Button(self._popup, text="Search", command=show_price)
-		self._popup_search.grid(row=2, column=0)
 		self._popup.mainloop()
 
 
