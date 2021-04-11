@@ -1,5 +1,8 @@
+from tkinter import ttk
+import os
 from CryptoManager import CryptoManager
 from tkinter import *
+from ttkthemes import ThemedTk, THEMES
 from PIL import ImageTk, Image
 from os import path
 
@@ -13,7 +16,7 @@ class KrypToes:
 		self._app = CryptoManager()
 
 		# Set up the GUI using tkinter
-		self._root = Tk()
+		self._root = ThemedTk(themebg=True)
 		self.initiate_elements()
 
 	def get_manager(self):
@@ -22,12 +25,111 @@ class KrypToes:
 	def get_root(self):
 		return self._root
 
-	def initiate_elements(self):
-		pass
+	def is_valid_crypto(self, crypto_name):
+		"""
+		ANYTHING THAT CALLS THIS FUNCTION SHOULD CATCH THE "KeyError"
+		Checks if the name of the Crypto entered into the text entry is valid
 
-	def memeify(self):
+		"""
+		try:
+			self._app.lookup_id(crypto_name)
+		except KeyError:
+			print("No such crypto")
+
+
+	def initiate_elements(self):
+		# root window
+		self._root.set_theme('equilux')
+		self._root.title("Cryp-toes!")
+
+		if "nt" == os.name:
+			self._root.wm_iconbitmap(bitmap = "images/doggo.ico")
+			self._root.geometry("700x300")
+
+		# Search for crypto
+		text_box = ttk.Entry(self._root, width = 15)
+		text_box.grid(row = 0, column = 0, ipadx = 0)
+
+		# Enter BTC value window
+		enterButton = ttk.Button(self._root, text="Buy", command=lambda :self.buy_crypto(text_box.get()))
+		enterButton.grid(row=0, column=1)
+
+		enterButton = ttk.Button(self._root, text="Sell")
+		enterButton.grid(row=0, column=2)
+
+		# query
+		query_btn = ttk.Button(self._root, text="Look Up Price", command=self.lookup_price)
+		query_btn.grid(row=0, column=3)
+
+
+
+	def memeify(self, pur_val, amt_of_crypto):
 		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
-		pass
+		pur_coin_amt=amt_of_crypto
+		act_coin_val=5
+		pur_coin_val=pur_val
+
+		percent_change = (pur_coin_amt * act_coin_val) / pur_coin_val
+		# Determine a meme that correspond to the percentage change for each cryptocurrency in the portfolio
+		if pur_coin_amt * act_coin_val != pur_coin_val:
+
+			if percent_change >= 2:  # if current amt is equal to or greater than 100% of buying price
+				image = Image.open(path.join('images', 'wrestler5.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image=ImageTk.PhotoImage(image)
+
+			elif 2 > percent_change >= 1.75:
+				image = Image.open(path.join('images', 'wrestler4.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif 1.75 > percent_change >= 1.50:
+				image = Image.open(path.join('images', 'wrestler3.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif 1.50 > percent_change >= 1.25:
+				image = Image.open(path.join('images', 'wrestler2.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif 1.25 > percent_change > pur_coin_val:
+				image = Image.open(path.join('images', 'wrestler1.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif pur_coin_val > percent_change >= .80:
+				image = Image.open(path.join('images', 'clown1.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif .80 > percent_change >= .60:
+				image = Image.open(path.join('images', 'clown2.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif .60 > percent_change >= .40:
+				image = Image.open(path.join('images', 'clown3.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif .40 > percent_change >= .20:
+				image = Image.open(path.join('images', 'clown4.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif .20 > percent_change >= .5:
+				image = Image.open(path.join('images', 'clown5.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+			elif .5 > percent_change:
+				image = Image.open(path.join('images', 'clown6.png'))
+				image = image.resize((110, 110), Image.ANTIALIAS)
+				the_image = ImageTk.PhotoImage(image)
+
+		return the_image
+
 
 	def update_status(self):
 		"""Update the price/value of each cryptocurrency, total value of the porfolio, and the corresponding meme."""
@@ -38,7 +140,7 @@ class KrypToes:
 		# Calculate the percent change in price for each cryptocurrency against the initial purchase price
 
 		# Update each element in the display with the updated information
-		#   unit price, % change in porfolion value, % change in the last hour, login status...
+		#   unit price, % change in  value, % change in the last hour, login status...
 		pass
 
 	def create_account(self):
@@ -72,13 +174,17 @@ class KrypToes:
 		self._popup = Toplevel()
 		self._popup_message = Label(self._popup, text="Enter the name of the cryptocurrency:")
 		self._popup_message.grid(row=0, column=0)
+
 		self._popup_input = Entry(self._popup)
+
 		self._popup_input.grid(row=1, column=0)
+
 		self._popup_search = Button(self._popup, text="Search", command=show_price)
 		self._popup_search.grid(row=2, column=0)
 		self._popup.mainloop()
 
-	def buy_crypto(self):
+
+	def buy_crypto(self, input):
 		"""Let the user to buy cryptocurrency with available fund."""
 		# TO DO
 
@@ -90,7 +196,38 @@ class KrypToes:
 		#   Fun Bonus: show a meme that the user is too broke to purchase
 
 		# Fun Bonus: show a meme that user successfully make the purchase
-		pass
+		self._popup = Toplevel()
+		self._popup.geometry("300x200")
+
+		price = self._app.get_current_price("1")
+		message = f"The current price of {input} is ${price:.2f} per unit."
+		self._popup_price = Label(self._popup, text=message)
+		self._popup_price.grid(row=0, column=0)
+
+		# User enters the quantity they want to buy
+		self._popup_label = Label(self._popup, text="Purchase Quantity:")
+		self._popup_label.grid(row=1, column=0)
+
+		# user entry
+		self._popup_input = Entry(self._popup)
+		self._popup_input.grid(row=2, column=0)
+
+		# get cryptoID
+		crypto_id = self._app.lookup_crypto_id(input)
+
+		# submit button
+		self._popup_button = Button(self._popup, text= "submit", command =lambda: self.buy(1, crypto_id, int(self._popup_input.get()), self._popup))
+		self._popup_button.grid(row=4, column=0)
+		self._popup.mainloop()
+
+	def buy(self, user_id, crypto_id, quantity, window):
+
+		# buy through cryptomanager
+		total = self._app.buy_crypto(user_id, crypto_id, quantity)
+		total = round(total, 2)
+		receipt = Label(window, text= "You purchased: $" +str(total))
+		receipt.grid(row=5, column=0)
+
 
 	def sell_crypto(self):
 		"""Let the user to sell cryptocurrency in the current porfolio."""
@@ -127,7 +264,7 @@ class PanelManager:
 		self._manager = manager
 
 		# rows and cols to organize/format main page
-		self._row = 0
+		self._row = 1
 		self._col = 0
 
 		# create all panels on main page
@@ -142,8 +279,9 @@ class PanelManager:
 		# assets = self._manager.get_portfolio(self._user_id) 		# commented out so we do not use token
 
 		# fake data so we do not use all our tokens
-		assets = {1: 100.11, 2: 200.56, 3: 50.11}
+		assets = {1: 100.11, 2: 2, 3: 50.11}
 		names = {1: "Bitcoin", 2: "Ethereum", 3: "BinanceCoin"}
+		amounts= {1: 5.7, 2: 8.9, 3: .33}
 
 		# loop through each asset and retrieve the name, and value
 		for crypto_id in assets:
@@ -156,23 +294,25 @@ class PanelManager:
 			# crypto_name = self._manager.get_crypto_name(crypto_id)		# commented out so we do not use token
 			crypto_name = names[crypto_id]
 
+			crypto_amounts = amounts[crypto_id]
+
 			# None should be the image
-			self.create_panel(crypto_name, value, None)
+			self.create_panel(crypto_name, value, crypto_amounts)
 
 
 
-	def create_panel(self, crypto_name, value, image):
+	def create_panel(self, crypto_name, value, crypto_amounts):
 		"""
 		Create panels for each of User's assets
 		"""
 		# create panel object
-		panel = Panel(self._root, crypto_name, value, image, self._row, self._col)
+		panel = Panel(self._root, crypto_name, value, crypto_amounts, self._row, self._col)
 
 		# display panel
 		panel.display()
 
 		# formats the row and column of the panel on the main page
-		if self._col > 0:
+		if self._col > 1:
 
 			self._row += 1
 			self._col = 0
@@ -185,14 +325,14 @@ class PanelManager:
 
 class Panel:
 	""" A panel on the main page. Displays the asset name, the value, and the meme """
-	def __init__(self, root, crypto_name, value, image, row, col):
+	def __init__(self, root, crypto_name, value, crypto_amounts, row, col):
 		# the root window of the app
 		self._root = root
 
 		# what is displayed on the panel
 		self._crypto_name = crypto_name
 		self._value = value
-		self._image = image
+		self._image = KrypToes.memeify(value, crypto_amounts)
 
 		# where the panel is on the main page
 		self._row = row
@@ -200,16 +340,19 @@ class Panel:
 
 	def display(self):
 		# Creates the frame in which the meme and data will go into
-		labelFrame = LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name, font = ("Verdana", 16, "bold"))
+		labelFrame = ttk.LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
 		labelFrame.grid(row = self._row, column = self._col, pady = 10, padx = 10)
 		labelFrame.grid_propagate(0)
 
 		# displays the total value of the asset
-		price_label = Label(labelFrame, text = "$" + str(round(self._value, 2)), font = ("Verdana", 8))
+		price_label = ttk.Label(labelFrame, text = "$" + str(round(self._value, 2)))
 		price_label.place(x = 5, y = 0)
 
-		# TO-DO
 		# INSERT IMAGE WITHIN FRAME
+		image_label = Label(self._root, image=self._image)
+		image_label.photo = self._image
+		image_label.grid(row = self._row, column = self._col)
+
 
 
 	def set_image(self, image):
