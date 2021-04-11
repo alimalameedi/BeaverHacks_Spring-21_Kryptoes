@@ -289,6 +289,16 @@ class CryptoManager():
 
 		return total_value
 
+	def get_user_by_id(self, user_id):
+		"""Take the user id as a parameter and get the user's information."""
+
+		with self._database_connection as connection:
+			cursor = connection.execute("SELECT * FROM account WHERE id=?", (user_id,))
+
+			user_data = cursor.fetchone()
+
+		return user_data
+
 
 class InsufficientFundError(Exception):
 	"""Raise when the user does not have enough fund to buy any cryptocurrency."""
@@ -364,3 +374,5 @@ if __name__ == "__main__":
 
 	# Look up the name of Bitcoin (id = 1)
 	# print(app.lookup_crypto_name(1))
+
+	app.get_user_by_id(1)
