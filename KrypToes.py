@@ -172,14 +172,6 @@ class KrypToes:
 
 	def buy_crypto(self, crypto_name):
 		"""Let the user to buy cryptocurrency with available fund."""
-		# TO DO
-
-		# Show popup window to ask the user what to buy and how much
-
-		# Invoke CryptoManager.buy_crypto method
-
-		# Show error message when the purchasing is invalid (not enough money)
-		#   Fun Bonus: show a meme that the user is too broke to purchase
 
 		# Create a popup window to ask the user for which cryptocurrency to show the price
 		self._popup = Toplevel()
@@ -234,8 +226,11 @@ class KrypToes:
 			receipt_message = f"You purchased {units:.2f} units of {crypto_name} for ${value:.2f}"
 
 		except InsufficientFundError:
+
+			# Show the user that he/she has insufficient fund.
 			receipt_message = "You are too poor to invest this much!"
 
+		# Add additional row to the popup window with the purchase detail or error message
 		receipt = Label(window, text=receipt_message)
 		receipt.grid(row=4, column=0)
 
