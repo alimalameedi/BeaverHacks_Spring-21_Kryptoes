@@ -181,6 +181,25 @@ class KrypToes:
 		self._popup.mainloop()
 
 
+		if crypto_id:
+
+			# Ensure the name is has the correctly Capitalized.
+			crypto_name = self._app.lookup_crypto_name(crypto_id)
+
+			price = self._app.get_current_price(crypto_id)
+
+			message = f"The current price of {crypto_name} is ${price:.2f} per unit."
+
+		else:
+
+			message = f"This cryptocurrency does not exist!"
+
+		self._popup_message = Label(self._popup, text=message)
+		self._popup_message.grid(row=0, column=0)
+
+		self._popup.mainloop()
+
+
 	def buy_crypto(self, crypto_name):
 		"""Let the user to buy cryptocurrency with available fund."""
 
