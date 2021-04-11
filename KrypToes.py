@@ -160,16 +160,27 @@ class KrypToes:
 			crypto_name = self._app.lookup_crypto_name(crypto_id)
 			receipt_message = f"You purchased {units:.2f} units of {crypto_name} for ${value:.2f}"
 
+			image = Image.open(path.join('images', 'happy_doggo.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
+
 		except InsufficientFundError:
 
 			# Show the user that he/she has insufficient fund.
-			receipt_message = "You are too poor to invest this much!"
+			receipt_message = "Insufficient Funds!"
+
+			image = Image.open(path.join('images', 'Sad-Pablo-Escobar.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
 
 		# Add additional row to the popup window with the purchase detail or error message
 		receipt = Label(window, text=receipt_message)
 		receipt.grid(row=4, column=0)
 
-		# Refresh the window
+		the_label = Label(window, image=show_image)
+		the_label.photo = show_image
+		the_label.grid(row=3, column=0)
+
 		self._creator.create_all_panels()
 
 	def sell_crypto(self, crypto_name):
@@ -240,6 +251,9 @@ class KrypToes:
 			transaction = self._app.sell_crypto(user_id, crypto_id, quantity)
 			units, value = transaction
 			receipt_message = f"You sold {units:.2f} units of {crypto_name} for ${value:.2f}"
+			image = Image.open(path.join('images', 'happy_doggo.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
 
 			# Update available quantity for sell
 			quantity_available = abs(self._app.get_quantity(1, crypto_id))
@@ -254,9 +268,17 @@ class KrypToes:
 			# Show the user that he/she has insufficient quantity.
 			receipt_message = "You don't have enough to sell this much!"
 
+			image = Image.open(path.join('images', 'Sad-Pablo-Escobar.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
+
 		# Add additional row to the popup window with the purchase detail or error message
-		receipt = Label(window, text=receipt_message)
+		receipt = ttk.Label(window, text=receipt_message)
 		receipt.grid(row=5, column=0)
+
+		the_label = Label(self._popup, image=show_image)
+		the_label.photo = show_image
+		the_label.grid(row=3, column=0)
 
 		# Refresh the window
 		self._creator.create_all_panels()
