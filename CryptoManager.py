@@ -148,19 +148,13 @@ class CryptoManager():
 		"""Take the name of the cryptocurrency as parameter and
 		return the id of the currency according to coinmarketcap.com"""
 
-		try:
-			return self._crypto_id[crypto_name.lower()]
-		except KeyError:
-			return "This cryptocurrency does not exist!"
+		return self._crypto_id[crypto_name.lower()]
 
 	def lookup_crypto_name(self, crypto_id):
 		"""Take the id of the cryptocurrency (according to coinmarketcap.com) as parameter and
 		return the name of the currency"""
 
-		try:
-			return self._crypto_name[crypto_id]
-		except KeyError:
-			return "This cryptocurrency does not exist!"
+		return self._crypto_name[crypto_id]
 
 	def get_current_price(self, crypto_id, get_percent_change=False):
 		"""Take the id of the cryptocurrency as parameter.
@@ -177,7 +171,6 @@ class CryptoManager():
 		try:
 			response = self._session.get(self._url, params=parameters)
 			data = json.loads(response.text)
-
 			# If the no need for getting the percent change, then just return the current price
 			if not get_percent_change:
 				return data["data"][0]["quote"]["USD"]["price"]
@@ -211,7 +204,7 @@ class CryptoManager():
 			                            (cash_after_change, user_id))
 
 	def buy_crypto(self, user_id, crypto_id, units):
-		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase."""
+		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase. Return a 2-tuple (units, value) if the purchase is successful."""
 
 		# Ensure the user has enough cash on hand
 		cash = self.get_cash_amount(user_id)
@@ -219,30 +212,38 @@ class CryptoManager():
 		if cash < price * units:
 			raise InsufficientFundError
 
+		value = price * units
+
 		# Make the purchase
 		#   decrease the cash_amount
-		self.update_cash_amount(user_id, -(price * units))
+		self.update_cash_amount(user_id, -value)
 
 		#   update the holding for the cryptocurrency
 		self.add_to_portfolio(user_id, crypto_id, units, price)
 
+		return (units, value)
+
 	def sell_crypto(self, user_id, crypto_id, units):
-		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell."""
+		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell. Return a 2-tuple (units, value) if the sell is successful."""
 
 		# Ensure the user has enough cryptocurrency to be sold
 		holding = self.get_quantity(user_id, crypto_id)
 
-		if holding is None or holding < units:
+		if holding is None or units - holding > 0.0000001:
 			raise InsufficientQuantityError
 
 		price = self.get_current_price(crypto_id)
 
 		# Make the sell
 		#   increase the cash_amount
-		self.update_cash_amount(user_id, price * units)
+
+		value = price * units
+		self.update_cash_amount(user_id, value)
 
 		#   update the holding for the cryptocurrency
 		self.add_to_portfolio(user_id, crypto_id, -units, price)
+
+		return (units, value)
 
 	def get_portfolio(self, user_id):
 		"""Take the user id as a parameter and returns the entire portfolio as a dictionary."""
@@ -312,136 +313,65 @@ if __name__ == "__main__":
 	# Test code
 	app = CryptoManager()
 
+	# Create a temporary user with initiate cash amount of $10,000.00
+	# app.create_account("Elon", 10000.00)
 
-# Create a temporary user with initiate cash amount of $10,000.00
-# app.create_account("Elon", 10000.00)
-# app.create_account("Bezos", 20000.00)
-#
-# app.add_to_portfolio(1, 1, "Bitcoin", 1.2, 59408.60)
-# app.add_to_portfolio(1, 1, "Bitcoin", 2.5, 59400.99)
-# app.add_to_portfolio(1, 1, "Bitcoin", -1.0, 59448.32)
-# print(app.get_quantity(1, 1))
-# print(app.get_prices(1, 1))
+	# Get the quantity of Bitcoin the user has
+	# print(app.get_quantity(1, 1))
 
-# app.add_to_portfolio(2, 1, "Bitcoin", 3.0, 59408.60)
-# app.add_to_portfolio(2, 1, "Bitcoin", 1.0, 59400.99)
-# app.add_to_portfolio(2, 1, "Bitcoin", -1.5, 59448.32)
-# print(app.get_quantity(2, 1))
-# print(app.get_prices(2, 1))
-#
-# print(app.get_cash_amount(1))
-# print(app.get_cash_amount(2))
+	# Get the purchase/sell prices of all transaction the user has made
+	# print(app.get_prices(1, 1))
 
-# raise InsufficientFundError
-# raise InsufficientQuantityError
+	# Get the current cash amount that the user has
+	# print(app.get_cash_amount(1))
+	#
+	# Buy Bitcoin
+	# app.buy_crypto(1, 1, 0.001)
+	#
+	# Attempt to buy too much bitcoin with insufficient cash
+	# try:
+	# 	app.buy_crypto(1, 1, 1)
+	# except InsufficientFundError:
+	# 	print("You are too poor to invest!")
+	#
+	# Attempt to sell bitcoin with insufficient quantity in the porfolio
+	# try:
+	# 	app.sell_crypto(1, 1, 1)
+	# except InsufficientQuantityError:
+	# 	print("You are don't even have enough to sell!")
+	#
+	# Sell Bitcoin
+	# app.sell_crypto(1, 1, 0.0001)
+	#
+	# Get the quantity of Bitcoin the user currently has
+	# print(app.get_quantity(1, 1))
+	#
+	# Buy some Ethereum and Dogecoin and sell some Bitcoin
+	# app.buy_crypto(1, 2, 0.2)
+	# app.buy_crypto(1, 19, 0.3)
+	# app.sell_crypto(1, 1, 0.01)
+	#
+	# Get the entire porfolio of the user
+	# print(app.get_portfolio(1))
+	#
+	# Get the value (quantity * price) of each cryptocurrency in the user's portfolio
+	# print(app.get_each_crypto_value(1, 1))
+	# print(app.get_each_crypto_value(1, 2))
+	# print(app.get_each_crypto_value(1, 19))
+	#
+	# Get the total worth of the user's portfolio
+	# print(app.get_total_portfolio_value(1))
+	#
+	# Get the current price and percentage change in the last hour
+	# print(app.get_current_price(1, True))
+	#
+	# Get the entire portfolio of the user
+	# print(app.get_portfolio(1))
 
-# app.buy_crypto(1, 1, 0.001)
-# app.update_cash_amount(1, 1000.00)
-# app.update_cash_amount(2, -1000.00)
+	# Look up the id of Bitcoin
+	# print(app.lookup_crypto_id("bitcoin"))
 
-# app.buy_crypto(1, 1, 0.01)
-# app.buy_crypto(2, 1, 0.01)
+	# Look up the name of Bitcoin (id = 1)
+	# print(app.lookup_crypto_name(1))
 
-# try:
-# 	app.buy_crypto(1, 1, 1)
-# 	app.buy_crypto(2, 1, 1)
-# except InsufficientFundError:
-# 	print("You are too poor to invest!")
-
-# try:
-# 	app.sell_crypto(1, 1, 1)
-# 	app.sell_crypto(2, 1, 1)
-# except InsufficientQuantityError:
-# 	print("You are don't even have enough to sell!")
-
-# app.sell_crypto(1, 1, 0.02)
-# app.sell_crypto(2, 1, 0.01)
-
-# print(app.get_quantity(1, 1))
-# print(app.get_quantity(2, 1))
-
-# app.buy_crypto(1, 2, 0.2)
-# app.buy_crypto(1, 3, 0.3)
-# app.sell_crypto(1, 1, 0.01)
-
-# print(app.get_portfolio(2))
-
-# print(app.get_each_crypto_value(1, 1))
-# print(app.get_each_crypto_value(1, 2))
-# print(app.get_each_crypto_value(1, 3))
-
-# app.buy_crypto(2, 2, 1)
-# app.buy_crypto(2, 3, 2)
-# app.buy_crypto(2, 4, 3)
-# print(app.get_total_portfolio_value(1))
-# print(app.get_total_portfolio_value(2))
-
-# print(app.get_each_crypto_change(1, 1))
-# print(app.get_each_crypto_value(1, 1))
-
-# print(app.get_current_price(1, True))
-
-# print(app.get_portfolio(1))
-
-# Create a temporary user with initiate cash amount of $10,000.00
-# app.create_account("Elon", 10000.00)
-
-# Get the quantity of Bitcoin the user has
-# print(app.get_quantity(1, 1))
-
-# Get the purchase/sell prices of all transaction the user has made
-# print(app.get_prices(1, 1))
-
-# Get the current cash amount that the user has
-# print(app.get_cash_amount(1))
-#
-# Buy Bitcoin
-# app.buy_crypto(1, 1, 0.001)
-#
-# Attempt to buy too much bitcoin with insufficient cash
-# try:
-# 	app.buy_crypto(1, 1, 1)
-# except InsufficientFundError:
-# 	print("You are too poor to invest!")
-#
-# Attempt to sell bitcoin with insufficient quantity in the porfolio
-# try:
-# 	app.sell_crypto(1, 1, 1)
-# except InsufficientQuantityError:
-# 	print("You are don't even have enough to sell!")
-#
-# Sell Bitcoin
-# app.sell_crypto(1, 1, 0.0001)
-#
-# Get the quantity of Bitcoin the user currently has
-# print(app.get_quantity(1, 1))
-#
-# Buy some Ethereum and Dogecoin and sell some Bitcoin
-# app.buy_crypto(1, 2, 0.2)
-# app.buy_crypto(1, 19, 0.3)
-# app.sell_crypto(1, 1, 0.01)
-#
-# Get the entire porfolio of the user
-# print(app.get_portfolio(1))
-#
-# Get the value (quantity * price) of each cryptocurrency in the user's portfolio
-# print(app.get_each_crypto_value(1, 1))
-# print(app.get_each_crypto_value(1, 2))
-# print(app.get_each_crypto_value(1, 19))
-#
-# Get the total worth of the user's portfolio
-# print(app.get_total_portfolio_value(1))
-#
-# Get the current price and percentage change in the last hour
-# print(app.get_current_price(1, True))
-#
-# Get the entire portfolio of the user
-# print(app.get_portfolio(1))
-
-# Look up the id of Bitcoin
-# print(app.lookup_crypto_id("bitcoin"))
-
-# Look up the name of Bitcoin (id = 1)
-# print(app.lookup_crypto_name(1))
-
-# 	app.get_user_by_id(1)
+	# app.get_user_by_id(1)
