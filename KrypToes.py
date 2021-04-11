@@ -22,6 +22,8 @@ class KrypToes:
 		self._root = ThemedTk(themebg=True)
 		self.initiate_elements()
 
+		self._creator = PanelManager(self, self.get_manager(), 1)
+
 	def get_manager(self):
 		return self._app
 
@@ -61,74 +63,6 @@ class KrypToes:
 		# query
 		query_btn = ttk.Button(self._root, text="Look Up Price", command=lambda :self.lookup_price(text_box.get()))
 		query_btn.grid(row=0, column=3)
-
-
-	def memeify(self, pur_val, amt_of_crypto):
-		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
-		pur_coin_amt=amt_of_crypto
-		act_coin_val=5
-		pur_coin_val=pur_val
-
-		percent_change = (pur_coin_amt * act_coin_val) / pur_coin_val
-		# Determine a meme that correspond to the percentage change for each cryptocurrency in the portfolio
-		if pur_coin_amt * act_coin_val != pur_coin_val:
-
-			if percent_change >= 2:  # if current amt is equal to or greater than 100% of buying price
-				image = Image.open(path.join('images', 'wrestler5.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image=ImageTk.PhotoImage(image)
-
-			elif 2 > percent_change >= 1.75:
-				image = Image.open(path.join('images', 'wrestler4.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif 1.75 > percent_change >= 1.50:
-				image = Image.open(path.join('images', 'wrestler3.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif 1.50 > percent_change >= 1.25:
-				image = Image.open(path.join('images', 'wrestler2.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif 1.25 > percent_change > pur_coin_val:
-				image = Image.open(path.join('images', 'wrestler1.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif pur_coin_val > percent_change >= .80:
-				image = Image.open(path.join('images', 'clown1.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif .80 > percent_change >= .60:
-				image = Image.open(path.join('images', 'clown2.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif .60 > percent_change >= .40:
-				image = Image.open(path.join('images', 'clown3.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif .40 > percent_change >= .20:
-				image = Image.open(path.join('images', 'clown4.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif .20 > percent_change >= .5:
-				image = Image.open(path.join('images', 'clown5.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-			elif .5 > percent_change:
-				image = Image.open(path.join('images', 'clown6.png'))
-				image = image.resize((110, 110), Image.ANTIALIAS)
-				the_image = ImageTk.PhotoImage(image)
-
-		return the_image
 
 
 	def update_status(self):
@@ -235,6 +169,9 @@ class KrypToes:
 		receipt = Label(window, text=receipt_message)
 		receipt.grid(row=4, column=0)
 
+		# Refresh the window
+		self._creator.create_all_panels()
+
 	def sell_crypto(self, crypto_name):
 		"""Let the user to sell cryptocurrency with available cryptocurrency."""
 
@@ -321,12 +258,20 @@ class KrypToes:
 		receipt = Label(window, text=receipt_message)
 		receipt.grid(row=5, column=0)
 
+		# Refresh the window
+		self._creator.create_all_panels()
+
 
 class PanelManager:
 	"""
 	 Creates a updates the panels on the main page. Each Panel contains the name of the
 	 User's asset, the current value of their asset, and the meme.
 	"""
+	"""
+		 Creates a updates the panels on the main page. Each Panel contains the name of the
+		 User's asset, the current value of their asset, and the meme.
+		"""
+
 	def __init__(self, app, manager, user_id):
 		"""
 		:param app: the KrypToes front-end
@@ -340,6 +285,7 @@ class PanelManager:
 
 		# CryptoManager to get data from back-end database
 		self._manager = manager
+		self._panel_list = []
 
 		# rows and cols to organize/format main page
 		self._row = 1
@@ -354,38 +300,38 @@ class PanelManager:
 		"""
 
 		# retrieve user's portfolio from database
-		# assets = self._manager.get_portfolio(self._user_id) 		# commented out so we do not use token
+		assets = self._manager.get_portfolio(self._user_id) 		# commented out so we do not use token
 
-		# fake data so we do not use all our tokens
-		assets = {1: 100.11, 2: 2, 3: 50.11}
-		names = {1: "Bitcoin", 2: "Ethereum", 3: "BinanceCoin"}
-		amounts= {1: 5.7, 2: 8.9, 3: .33}
+		# Clear all before recreating all panels
+		self.clear_panels(self._panel_list)
 
 		# loop through each asset and retrieve the name, and value
 		for crypto_id in assets:
 
-			# retrieve value
-			# value = self._manager.get_each_crypto_value(self._user_id, crypto_id)		# commented out so we do not use token
-			value = assets[crypto_id]
-
 			# retrieve name
-			# crypto_name = self._manager.get_crypto_name(crypto_id)		# commented out so we do not use token
-			crypto_name = names[crypto_id]
+			crypto_name = self._manager.lookup_crypto_name(crypto_id)
 
-			crypto_amounts = amounts[crypto_id]
+		 	# retrieve value
+			value = self._manager.get_each_crypto_value(self._user_id, crypto_id)
 
-			# None should be the image
-			self.create_panel(crypto_name, value, crypto_amounts)
+			# Get the quantity in portfolio
+			quantity = assets[crypto_id]
+
+		 	# None should be the image
+			self.create_panel(crypto_name, value, quantity)
 
 
+	def clear_panels(self, list):
+		for item in list:
+			item.destroy_frame()
 
 	def create_panel(self, crypto_name, value, crypto_amounts):
 		"""
 		Create panels for each of User's assets
 		"""
 		# create panel object
-		panel = Panel(self._root, crypto_name, value, crypto_amounts, self._row, self._col)
-
+		panel = Panel(self._manager, self._root, crypto_name, value, crypto_amounts, self._row, self._col)
+		self._panel_list.append(panel)
 		# display panel
 		panel.display()
 
@@ -403,39 +349,68 @@ class PanelManager:
 
 class Panel:
 	""" A panel on the main page. Displays the asset name, the value, and the meme """
-	def __init__(self, root, crypto_name, value, crypto_amounts, row, col):
+	def __init__(self, app, root, crypto_name, value, crypto_amounts, row, col):
 		# the root window of the app
 		self._root = root
+		self._app = app
 
 		# what is displayed on the panel
 		self._crypto_name = crypto_name
 		self._value = value
-		self._image = KrypToes.memeify(value, crypto_amounts)
+		self._crypto_id = self._app.lookup_crypto_id(self._crypto_name)
+		self._percent_change = self._app.get_current_price(self._crypto_id, get_percent_change=True)[1]
+		self._image = self.memeify(self._percent_change)
 
 		# where the panel is on the main page
 		self._row = row
 		self._col = col
+		self._frame = None
 
 	def display(self):
+
 		# Creates the frame in which the meme and data will go into
-		labelFrame = ttk.LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
-		labelFrame.grid(row = self._row, column = self._col, pady = 10, padx = 10)
+		labelFrame = LabelFrame(self._root, height=200, width=200, text=self._crypto_name)
+		labelFrame = ttk.LabelFrame(self._root, height=200, width=200, text=self._crypto_name)
+		labelFrame.grid(row=self._row, column=self._col, pady=10, padx=10)
 		labelFrame.grid_propagate(0)
+		self._frame = labelFrame
 
 		# displays the total value of the asset
-		price_label = ttk.Label(labelFrame, text = "$" + str(round(self._value, 2)))
-		price_label.place(x = 5, y = 0)
+		price_label = ttk.Label(labelFrame, text="$" + str(round(self._value, 2)))
+		price_label.place(x=5, y=0)
 
 		# INSERT IMAGE WITHIN FRAME
 		image_label = Label(self._root, image=self._image)
 		image_label.photo = self._image
-		image_label.grid(row = self._row, column = self._col)
+		image_label.grid(row=self._row, column=self._col)
+		self._image_lable = image_label
 
-	def set_image(self, image):
-		""" Honestly, we may not need this """
-		self._image = image
+	def memeify(self, percent_change):
+		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
+
+		# Calculate the image number
+		if percent_change >= 1.25 or percent_change <= -1.25:
+			image_num = 4
+		else:
+			image_num = abs(int(percent_change/0.25))
+
+		# Determine which class of image to show
+		if percent_change > 0:
+			image_name = "wrestler" + str(image_num) + ".png"
+		else:
+			image_name = "clown" + str(image_num) + ".png"
+
+		# Show the meme
+		image = Image.open(path.join('images', image_name))
+		image = image.resize((110, 110), Image.ANTIALIAS)
+		the_image = ImageTk.PhotoImage(image)
+
+		return the_image
+
+	def destroy_frame(self):
+		self._frame.destroy()
+		self._image_lable.destroy()
 
 if __name__ == "__main__":
 	KrypToes = KrypToes()
-	creator = PanelManager(KrypToes, KrypToes.get_manager(), 1)
 	KrypToes.get_root().mainloop()
