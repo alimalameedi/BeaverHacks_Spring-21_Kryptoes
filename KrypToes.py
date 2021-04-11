@@ -1,5 +1,8 @@
+from tkinter import ttk
+import os
 from CryptoManager import CryptoManager
 from tkinter import *
+from ttkthemes import ThemedTk, THEMES
 from PIL import ImageTk, Image
 from os import path
 
@@ -13,7 +16,7 @@ class KrypToes:
 		self._app = CryptoManager()
 
 		# Set up the GUI using tkinter
-		self._root = Tk()
+		self._root = ThemedTk(themebg=True)
 		self.initiate_elements()
 
 	def get_manager(self):
@@ -22,8 +25,43 @@ class KrypToes:
 	def get_root(self):
 		return self._root
 
+	def is_valid_crypto(self, crypto_name):
+		"""
+		ANYTHING THAT CALLS THIS FUNCTION SHOULD CATCH THE "KeyError"
+		Checks if the name of the Crypto entered into the text entry is valid
+
+		"""
+		try:
+			self._app.lookup_id(crypto_name)
+		except KeyError:
+			print("No such crypto")
+
+
 	def initiate_elements(self):
-		pass
+		# root window
+		self._root.set_theme('equilux')
+		self._root.title("Cryp-toes!")
+
+		if "nt" == os.name:
+			self._root.wm_iconbitmap(bitmap = "images/doggo.ico")
+			self._root.geometry("700x300")
+
+		# Search for crypto
+		text_box = ttk.Entry(self._root, width = 15)
+		text_box.grid(row = 0, column = 0, ipadx = 0)
+
+		# Enter BTC value window
+		enterButton = ttk.Button(self._root, text="Buy", command=lambda :self.buy_crypto(text_box.get()))
+		enterButton.grid(row=0, column=1)
+
+		enterButton = ttk.Button(self._root, text="Sell")
+		enterButton.grid(row=0, column=2)
+
+		# query
+		query_btn = ttk.Button(self._root, text="Look Up Price", command=self.lookup_price)
+		query_btn.grid(row=0, column=3)
+
+
 
 	def memeify(self, pur_val, amt_of_crypto):
 		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
@@ -102,7 +140,7 @@ class KrypToes:
 		# Calculate the percent change in price for each cryptocurrency against the initial purchase price
 
 		# Update each element in the display with the updated information
-		#   unit price, % change in porfolion value, % change in the last hour, login status...
+		#   unit price, % change in  value, % change in the last hour, login status...
 		pass
 
 	def create_account(self):
@@ -136,13 +174,17 @@ class KrypToes:
 		self._popup = Toplevel()
 		self._popup_message = Label(self._popup, text="Enter the name of the cryptocurrency:")
 		self._popup_message.grid(row=0, column=0)
+
 		self._popup_input = Entry(self._popup)
+
 		self._popup_input.grid(row=1, column=0)
+
 		self._popup_search = Button(self._popup, text="Search", command=show_price)
 		self._popup_search.grid(row=2, column=0)
 		self._popup.mainloop()
 
-	def buy_crypto(self):
+
+	def buy_crypto(self, input):
 		"""Let the user to buy cryptocurrency with available fund."""
 		# TO DO
 
@@ -154,7 +196,38 @@ class KrypToes:
 		#   Fun Bonus: show a meme that the user is too broke to purchase
 
 		# Fun Bonus: show a meme that user successfully make the purchase
-		pass
+		self._popup = Toplevel()
+		self._popup.geometry("300x200")
+
+		price = self._app.get_current_price("1")
+		message = f"The current price of {input} is ${price:.2f} per unit."
+		self._popup_price = Label(self._popup, text=message)
+		self._popup_price.grid(row=0, column=0)
+
+		# User enters the quantity they want to buy
+		self._popup_label = Label(self._popup, text="Purchase Quantity:")
+		self._popup_label.grid(row=1, column=0)
+
+		# user entry
+		self._popup_input = Entry(self._popup)
+		self._popup_input.grid(row=2, column=0)
+
+		# get cryptoID
+		crypto_id = self._app.lookup_crypto_id(input)
+
+		# submit button
+		self._popup_button = Button(self._popup, text= "submit", command =lambda: self.buy(1, crypto_id, int(self._popup_input.get()), self._popup))
+		self._popup_button.grid(row=4, column=0)
+		self._popup.mainloop()
+
+	def buy(self, user_id, crypto_id, quantity, window):
+
+		# buy through cryptomanager
+		total = self._app.buy_crypto(user_id, crypto_id, quantity)
+		total = round(total, 2)
+		receipt = Label(window, text= "You purchased: $" +str(total))
+		receipt.grid(row=5, column=0)
+
 
 	def sell_crypto(self):
 		"""Let the user to sell cryptocurrency in the current porfolio."""
@@ -191,7 +264,7 @@ class PanelManager:
 		self._manager = manager
 
 		# rows and cols to organize/format main page
-		self._row = 0
+		self._row = 1
 		self._col = 0
 
 		# create all panels on main page
@@ -239,7 +312,7 @@ class PanelManager:
 		panel.display()
 
 		# formats the row and column of the panel on the main page
-		if self._col > 0:
+		if self._col > 1:
 
 			self._row += 1
 			self._col = 0
@@ -267,12 +340,12 @@ class Panel:
 
 	def display(self):
 		# Creates the frame in which the meme and data will go into
-		labelFrame = LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name, font = ("Verdana", 16, "bold"))
+		labelFrame = ttk.LabelFrame(self._root, height = 200, width = 200, text = self._crypto_name)
 		labelFrame.grid(row = self._row, column = self._col, pady = 10, padx = 10)
 		labelFrame.grid_propagate(0)
 
 		# displays the total value of the asset
-		price_label = Label(labelFrame, text = "$" + str(round(self._value, 2)), font = ("Verdana", 8))
+		price_label = ttk.Label(labelFrame, text = "$" + str(round(self._value, 2)))
 		price_label.place(x = 5, y = 0)
 
 		# INSERT IMAGE WITHIN FRAME
