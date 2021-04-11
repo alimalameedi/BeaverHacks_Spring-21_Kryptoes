@@ -256,13 +256,6 @@ class KrypToes:
 				self._popup.mainloop()
 
 		# Fun Bonus: show a meme that user successfully make the purchase
-				image = Image.open(path.join('images', 'happy_doggo.png'))
-				image = image.resize((150, 150), Image.ANTIALIAS)
-				show_image = ImageTk.PhotoImage(image)
-
-			the_label = Label(self._popup, image=show_image)
-			the_label.photo = show_image
-			the_label.grid(row=3, column=0)
 
 	def sell(self, user_id, crypto_id, quantity, window):
 		"""Take user id, cryptocurrency id, quantity to buy, and the popup window object as parameters.
@@ -277,6 +270,9 @@ class KrypToes:
 			transaction = self._app.sell_crypto(user_id, crypto_id, quantity)
 			units, value = transaction
 			receipt_message = f"You sold {units:.2f} units of {crypto_name} for ${value:.2f}"
+			image = Image.open(path.join('images', 'happy_doggo.png'))
+			image = image.resize((150, 150), Image.ANTIALIAS)
+			show_image = ImageTk.PhotoImage(image)
 
 			# Update available quantity for sell
 			quantity_available = abs(self._app.get_quantity(1, crypto_id))
@@ -294,6 +290,10 @@ class KrypToes:
 		# Add additional row to the popup window with the purchase detail or error message
 		receipt = ttk.Label(window, text=receipt_message)
 		receipt.grid(row=5, column=0)
+
+		the_label = Label(self._popup, image=show_image)
+		the_label.photo = show_image
+		the_label.grid(row=3, column=0)
 
 		# Refresh the window
 		self._creator.create_all_panels()
