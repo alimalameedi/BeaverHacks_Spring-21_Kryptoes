@@ -150,6 +150,29 @@ class CryptoManager():
 		"""Take the name of the cryptocurrency as parameter and
 		return the id of the currency according to coinmarketcap.com"""
 
+
+	def lookup_crypto_name(self, crypto_id):
+		"""
+		Return Name of Crypto
+
+		:
+		"""
+		# Parameters for Query
+		parameters = {
+			"start": crypto_id,
+			"limit": "1",
+			"convert": "USD"
+		}
+
+		# Pull cryptocurrency data from the server
+		try:
+			response = self._session.get(self._url, params=parameters)
+			data = json.loads(response.text)
+			return data["data"][0]["name"]
+		except (ConnectionError, Timeout, TooManyRedirects) as error_message:
+			print(error_message)
+
+
 		try:
 			return self._crypto_id[crypto_name.lower()]
 		except KeyError:
@@ -163,6 +186,7 @@ class CryptoManager():
 			return self._crypto_name[crypto_id]
 		except KeyError:
 			return "This cryptocurrency does not exist!"
+
 
 	def get_current_price(self, crypto_id, get_percent_change=False):
 		"""Take the id of the cryptocurrency as parameter.
@@ -369,6 +393,10 @@ if __name__ == "__main__":
 	# print(app.get_each_crypto_change(1, 1))
 	# print(app.get_each_crypto_value(1, 1))
 
+
+	# print(app.get_current_price(1, True))
+
 	# print(app.get_current_price(1, True))
 
 	# print(app.lookup_crypto_id("Dogecoin"))
+
