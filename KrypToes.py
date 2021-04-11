@@ -409,6 +409,9 @@ class Panel:
 		price_label = ttk.Label(labelFrame, text="$" + str(round(self._value, 2)))
 		price_label.place(x=5, y=0)
 
+		percentage_change_label = ttk.Label(labelFrame, text=str(round(self._percent_change,2)))
+		percentage_change_label.place(x=5, y=20)
+
 		# INSERT IMAGE WITHIN FRAME
 		image_label = Label(self._root, image=self._image)
 		image_label.photo = self._image
