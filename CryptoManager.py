@@ -225,7 +225,7 @@ class CryptoManager():
 		return (units, value)
 
 	def sell_crypto(self, user_id, crypto_id, units):
-		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell."""
+		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell. Return a 2-tuple (units, value) if the sell is successful."""
 
 		# Ensure the user has enough cryptocurrency to be sold
 		holding = self.get_quantity(user_id, crypto_id)
@@ -237,10 +237,14 @@ class CryptoManager():
 
 		# Make the sell
 		#   increase the cash_amount
-		self.update_cash_amount(user_id, price * units)
+
+		value = price * units
+		self.update_cash_amount(user_id, value)
 
 		#   update the holding for the cryptocurrency
 		self.add_to_portfolio(user_id, crypto_id, -units, price)
+
+		return (units, value)
 
 	def get_portfolio(self, user_id):
 		"""Take the user id as a parameter and returns the entire portfolio as a dictionary."""

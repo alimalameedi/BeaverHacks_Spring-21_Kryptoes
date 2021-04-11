@@ -61,7 +61,6 @@ class KrypToes:
 		query_btn.grid(row=0, column=3)
 
 
-
 	def memeify(self, pur_val, amt_of_crypto):
 		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
 		pur_coin_amt=amt_of_crypto
@@ -173,7 +172,7 @@ class KrypToes:
 	def buy_crypto(self, crypto_name):
 		"""Let the user to buy cryptocurrency with available fund."""
 
-		# Create a popup window to ask the user for which cryptocurrency to show the price
+		# Create a popup window
 		self._popup = Toplevel()
 
 		crypto_id = self.is_valid_crypto(crypto_name)
@@ -234,19 +233,87 @@ class KrypToes:
 		receipt = Label(window, text=receipt_message)
 		receipt.grid(row=4, column=0)
 
-	def sell_crypto(self):
-		"""Let the user to sell cryptocurrency in the current porfolio."""
-		# TO DO
+	def sell_crypto(self, crypto_name):
+		"""Let the user to sell cryptocurrency with available cryptocurrency."""
 
-		# Show popup window to ask the user what to sell and how much
+		# Create a popup window
+		self._popup = Toplevel()
 
-		# Invoke CryptoManager.sell_crypto method
+		crypto_id = self.is_valid_crypto(crypto_name)
 
-		# Show error message when the sell is invalid (not enough stock)
-		#   Fun Bonus: show a meme that the user does not have enough holding to sell
+		if crypto_id:
+			# Ensure the name is has the correctly Capitalized.
+			crypto_name = self._app.lookup_crypto_name(crypto_id)
+			price = self._app.get_current_price(crypto_id)
+			quantity_available = self._app.get_quantity(1, crypto_id)
 
-		# Fun Bonus: show a meme that user successfully make the sell
-		pass
+			price_message = f"The current price of {crypto_name} is ${price:.2f} per unit."
+
+			# If the user does not have this cryptocurrency in his/her portfolio
+			if quantity_available is None or abs(quantity_available - 0) < 0.0000000:
+				possible_sell = False
+				availability_message = f"You don't have any of {crypto_name} to sell!"
+			else:
+				possible_sell = True
+				availability_message = f"You currently have {quantity_available:.2f} units of {crypto_name} in your portfolio."
+
+		else:
+			price_message = f"This cryptocurrency does not exist!"
+
+		# Show the current price or error message if the cryptocurrency does not exist
+		self._popup_message = Label(self._popup, text=price_message)
+		self._popup_message.grid(row=0, column=0)
+
+		if crypto_id:
+
+			# Show the availability of the cryptocurrency
+			self._popup_message = Label(self._popup, text=availability_message)
+			self._popup_message.grid(row=1, column=0)
+
+			if possible_sell:
+
+				# User enters the quantity they want to sell
+				self._popup_label = Label(self._popup, text="Sell Quantity:")
+				self._popup_label.grid(row=2, column=0)
+
+				# User entry for quantity
+				self._popup_input = Entry(self._popup)
+				self._popup_input.grid(row=3, column=0)
+
+				# Submit button
+				self._popup_button = Button(self._popup, text="Submit", command=lambda: self.sell(1, crypto_id, float(self._popup_input.get()), self._popup))
+				self._popup_button.grid(row=4, column=0)
+				self._popup.mainloop()
+
+		# Fun Bonus: show a meme that user successfully make the purchase
+
+	def sell(self, user_id, crypto_id, quantity, window):
+		"""Take user id, cryptocurrency id, quantity to buy, and the popup window object as parameters.
+		Make the sell and show how much was sold.
+		Otherwise, show the user that he/she has insufficient quantity."""
+
+		try:
+			# Sell through cryptomanager
+			transaction = self._app.sell_crypto(user_id, crypto_id, quantity)
+			units, value = transaction
+			crypto_name = self._app.lookup_crypto_name(crypto_id)
+			receipt_message = f"You sold {units:.2f} units of {crypto_name} for ${value:.2f}"
+
+		except InsufficientQuantityError:
+
+			# Show the user that he/she has insufficient quantity.
+			receipt_message = "You don't have enough to sell this much!"
+
+		# Add additional row to the popup window with the purchase detail or error message
+		receipt = Label(window, text=receipt_message)
+		receipt.grid(row=5, column=0)
+
+		# Update available quantity for sell
+		quantity_available = self._app.get_quantity(1, crypto_id)
+		availability_message = f"You currently have {quantity_available:.2f} units of {crypto_name} in your portfolio."
+		# Show the availability of the cryptocurrency
+		self._popup_message = Label(self._popup, text=availability_message)
+		self._popup_message.grid(row=1, column=0)
 
 
 class PanelManager:
