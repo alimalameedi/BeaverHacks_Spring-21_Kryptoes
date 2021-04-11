@@ -247,7 +247,7 @@ class KrypToes:
 			# Ensure the name is has the correctly Capitalized.
 			crypto_name = self._app.lookup_crypto_name(crypto_id)
 			price = self._app.get_current_price(crypto_id)
-			quantity_available = abs(self._app.get_quantity(1, crypto_id))
+			quantity_available = self._app.get_quantity(1, crypto_id)
 
 			price_message = f"The current price of {crypto_name} is ${price:.2f} per unit."
 
@@ -257,6 +257,7 @@ class KrypToes:
 				availability_message = f"You don't have any of {crypto_name} to sell!"
 			else:
 				possible_sell = True
+				quantity_available = abs(quantity_available)
 				availability_message = f"You currently have {quantity_available:.2f} units of {crypto_name} in your portfolio."
 
 		else:
