@@ -20,6 +20,9 @@ class KrypToes:
 		# Connect to the backend
 		self._app = CryptoManager()
 
+		if self._app.get_user_by_id(1) is None:
+			self._app.create_account("Elon", 10000.00)
+
 		# Set up the GUI using tkinter
 		self._root = ThemedTk(themebg=True)
 		self.initiate_elements()
