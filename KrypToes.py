@@ -1,6 +1,6 @@
 from tkinter import ttk
 import os
-from CryptoManager import CryptoManager
+from CryptoManager import CryptoManager, InsufficientFundError, InsufficientQuantityError
 from tkinter import *
 from ttkthemes import ThemedTk, THEMES
 from PIL import ImageTk, Image
@@ -34,9 +34,7 @@ class KrypToes:
 		try:
 			return self._app.lookup_crypto_id(crypto_name)
 		except KeyError:
-			print("No such crypto")
 			return False
-
 
 	def initiate_elements(self):
 		# root window
@@ -172,7 +170,7 @@ class KrypToes:
 		self._popup.mainloop()
 
 
-	def buy_crypto(self, input):
+	def buy_crypto(self, crypto_name):
 		"""Let the user to buy cryptocurrency with available fund."""
 		# TO DO
 
@@ -183,39 +181,63 @@ class KrypToes:
 		# Show error message when the purchasing is invalid (not enough money)
 		#   Fun Bonus: show a meme that the user is too broke to purchase
 
-		# Fun Bonus: show a meme that user successfully make the purchase
+		# Create a popup window to ask the user for which cryptocurrency to show the price
 		self._popup = Toplevel()
-		self._popup.geometry("300x200")
 
-		price = self._app.get_current_price("1")
-		message = f"The current price of {input} is ${price:.2f} per unit."
-		self._popup_price = Label(self._popup, text=message)
-		self._popup_price.grid(row=0, column=0)
+		crypto_id = self.is_valid_crypto(crypto_name)
 
-		# User enters the quantity they want to buy
-		self._popup_label = Label(self._popup, text="Purchase Quantity:")
-		self._popup_label.grid(row=1, column=0)
+		if crypto_id:
 
-		# user entry
-		self._popup_input = Entry(self._popup)
-		self._popup_input.grid(row=2, column=0)
+			# Ensure the name is has the correctly Capitalized.
+			crypto_name = self._app.lookup_crypto_name(crypto_id)
 
-		# get cryptoID
-		crypto_id = self._app.lookup_crypto_id(input)
+			price = self._app.get_current_price(crypto_id)
 
-		# submit button
-		self._popup_button = Button(self._popup, text= "submit", command =lambda: self.buy(1, crypto_id, int(self._popup_input.get()), self._popup))
-		self._popup_button.grid(row=4, column=0)
-		self._popup.mainloop()
+			message = f"The current price of {crypto_name} is ${price:.2f} per unit."
+
+		else:
+
+			message = f"This cryptocurrency does not exist!"
+
+		# Show the current price
+		self._popup_message = Label(self._popup, text=message)
+		self._popup_message.grid(row=0, column=0)
+
+		if crypto_id:
+
+			# User enters the quantity they want to buy
+			self._popup_label = Label(self._popup, text="Purchase Quantity:")
+			self._popup_label.grid(row=1, column=0)
+
+			# User entry for quantity
+			self._popup_input = Entry(self._popup)
+			self._popup_input.grid(row=2, column=0)
+
+			# Submit button
+			self._popup_button = Button(self._popup, text="Submit", command=lambda:self.buy(1, crypto_id, float(self._popup_input.get()), self._popup))
+			self._popup_button.grid(row=3, column=0)
+			self._popup.mainloop()
+
+		# Fun Bonus: show a meme that user successfully make the purchase
 
 	def buy(self, user_id, crypto_id, quantity, window):
+		"""Take user id, cryptocurrency id, quantity to buy, and the popup window object as parameters.
+		Make the purchase and show how much was purchased.
+		Otherwise, show the user that he/she has insufficient fund."""
 
-		# buy through cryptomanager
-		total = self._app.buy_crypto(user_id, crypto_id, quantity)
-		total = round(total, 2)
-		receipt = Label(window, text= "You purchased: $" +str(total))
-		receipt.grid(row=5, column=0)
+		try:
 
+			# Buy through cryptomanager
+			transaction = self._app.buy_crypto(user_id, crypto_id, quantity)
+			units, value = transaction
+			crypto_name = self._app.lookup_crypto_name(crypto_id)
+			receipt_message = f"You purchased {units:.2f} units of {crypto_name} for ${value:.2f}"
+
+		except InsufficientFundError:
+			receipt_message = "You are too poor to invest this much!"
+
+		receipt = Label(window, text=receipt_message)
+		receipt.grid(row=4, column=0)
 
 	def sell_crypto(self):
 		"""Let the user to sell cryptocurrency in the current porfolio."""

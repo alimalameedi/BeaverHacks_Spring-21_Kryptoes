@@ -205,7 +205,7 @@ class CryptoManager():
 			                            (cash_after_change, user_id))
 
 	def buy_crypto(self, user_id, crypto_id, units):
-		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase."""
+		"""Take the user id, cryptocurrency id, and units to invest as parameters and make the purchase. Return a 2-tuple (units, value) if the purchase is successful."""
 
 		# Ensure the user has enough cash on hand
 		cash = self.get_cash_amount(user_id)
@@ -213,12 +213,16 @@ class CryptoManager():
 		if cash < price * units:
 			raise InsufficientFundError
 
+		value = price * units
+
 		# Make the purchase
 		#   decrease the cash_amount
-		self.update_cash_amount(user_id, -(price * units))
+		self.update_cash_amount(user_id, -value)
 
 		#   update the holding for the cryptocurrency
 		self.add_to_portfolio(user_id, crypto_id, units, price)
+
+		return (units, value)
 
 	def sell_crypto(self, user_id, crypto_id, units):
 		"""Take the user id, cryptocurrency id, and units to be sold as parameters and make the sell."""
