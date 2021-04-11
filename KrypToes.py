@@ -389,7 +389,9 @@ class Panel:
 		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
 
 		# Calculate the image number
-		if percent_change >= 1.25 or percent_change <= -1.25:
+		if percent_change < -1.25:
+			image_num = 5
+		elif percent_change > 1.00 or percent_change < -1.00:
 			image_num = 4
 		else:
 			image_num = abs(int(percent_change/0.25))
