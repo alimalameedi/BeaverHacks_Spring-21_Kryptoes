@@ -388,19 +388,19 @@ class Panel:
 	def memeify(self, percent_change):
 		"""Take the percent change of the cryptocurrency price and generate a customized meme."""
 
+		# Calculate the image number
 		if percent_change >= 1.25 or percent_change <= -1.25:
 			image_num = 4
-
 		else:
 			image_num = abs(int(percent_change/0.25))
 
+		# Determine which class of image to show
 		if percent_change > 0:
 			image_name = "wrestler" + str(image_num) + ".png"
 		else:
 			image_name = "clown" + str(image_num) + ".png"
 
-		print(percent_change, image_name)
-
+		# Show the meme
 		image = Image.open(path.join('images', image_name))
 		image = image.resize((110, 110), Image.ANTIALIAS)
 		the_image = ImageTk.PhotoImage(image)
